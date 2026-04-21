@@ -1,0 +1,32 @@
+name: Build Leyo
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest  # On compile pour Windows !
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Télécharger les dépendances
+        run: go mod tidy
+
+      - name: Compiler Leyo
+        run: go build -o leyo.exe ./...
+
+      - name: Uploader le binaire
+        uses: actions/upload-artifact@v4
+        with:
+          name: leyo-windows
+          path: leyo.exe
