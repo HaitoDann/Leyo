@@ -12,13 +12,10 @@ import (
 func main() {
 	fmt.Println("╔══════════════════════════╗")
 	fmt.Println("║     Leyo Shell v0.2      ║")
-	fmt.Println("║  ↑↓ historique | exit    ║")
+	fmt.Println("║  history | exit          ║")
 	fmt.Println("╚══════════════════════════╝")
 
-	// Charge l'historique au démarrage
 	history := shell.LoadHistory()
-	_ = len(history)
-
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
@@ -39,7 +36,6 @@ func main() {
 			continue
 		}
 
-		// Commande spéciale : afficher l'historique
 		if input == "history" {
 			for i, cmd := range history {
 				fmt.Printf("  %d  %s\n", i+1, cmd)
@@ -47,12 +43,8 @@ func main() {
 			continue
 		}
 
-		// Sauvegarde dans l'historique
 		shell.SaveToHistory(input)
 		history = shell.LoadHistory()
-		historyIndex = len(history)
-
-		// Exécute la commande
 		shell.Run(input)
 	}
 }
