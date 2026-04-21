@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest  # On compile pour Windows !
+    runs-on: windows-latest
 
     steps:
       - name: Récupérer le code
@@ -18,9 +18,10 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
+          cache: false        # ← désactive le cache (go.sum absent)
 
       - name: Télécharger les dépendances
-        run: go mod tidy
+        run: go mod tidy      # ← génère go.sum automatiquement
 
       - name: Compiler Leyo
         run: go build -o leyo.exe ./...
