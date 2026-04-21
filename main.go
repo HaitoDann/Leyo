@@ -1,50 +1,24 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"os"
-	"strings"
+    "fmt"
+    "os"
 
-	"github.com/HaitoDann/Leyo/shell"
+    "github.com/HaitoDann/Leyo/ui"
+    tea "github.com/charmbracelet/bubbletea"
 )
 
 func main() {
-	fmt.Println("╔══════════════════════════╗")
-	fmt.Println("║     Leyo Shell v0.2      ║")
-	fmt.Println("║  history | exit          ║")
-	fmt.Println("╚══════════════════════════╝")
+    // Titre de la fenêtre Windows
+    fmt.Print("\033]0;⬡ Leyo Shell\007")
 
-	history := shell.LoadHistory()
-	scanner := bufio.NewScanner(os.Stdin)
+    p := tea.NewProgram(
+        ui.InitModel(),
+        tea.WithAltScreen(),
+    )
 
-	for {
-		fmt.Print("\n[leyo] > ")
-
-		if !scanner.Scan() {
-			break
-		}
-
-		input := strings.TrimSpace(scanner.Text())
-
-		if input == "exit" {
-			fmt.Println("À bientôt 👋")
-			break
-		}
-
-		if input == "" {
-			continue
-		}
-
-		if input == "history" {
-			for i, cmd := range history {
-				fmt.Printf("  %d  %s\n", i+1, cmd)
-			}
-			continue
-		}
-
-		shell.SaveToHistory(input)
-		history = shell.LoadHistory()
-		shell.Run(input)
-	}
+    if _, err := p.Run(); err != nil {
+        fmt.Println("Erreur:", err)
+        os.Exit(1)
+    }
 }
