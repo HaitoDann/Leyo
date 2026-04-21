@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/HaitoDann/leyo/shell"
+	"github.com/HaitoDann/Leyo/shell"
 )
 
 func main() {
