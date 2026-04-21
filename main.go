@@ -1,24 +1,38 @@
 package main
 
 import (
-    "fmt"
-    "os"
+	"embed"
 
-    "github.com/HaitoDann/Leyo/ui"
-    tea "github.com/charmbracelet/bubbletea"
+	"github.com/wailsapp/wails/v2"
+	"github.com/wailsapp/wails/v2/pkg/options"
+	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/windows"
 )
 
+//go:embed all:frontend
+var assets embed.FS
+
 func main() {
-    // Titre de la fenêtre Windows
-    fmt.Print("\033]0;⬡ Leyo Shell\007")
+	app := NewApp()
 
-    p := tea.NewProgram(
-        ui.InitModel(),
-        tea.WithAltScreen(),
-    )
-
-    if _, err := p.Run(); err != nil {
-        fmt.Println("Erreur:", err)
-        os.Exit(1)
-    }
+	err := wails.Run(&options.App{
+		Title:     "Leyo Shell",
+		Width:     1100,
+		Height:    680,
+		MinWidth:  800,
+		MinHeight: 500,
+		AssetServer: &assetserver.Options{
+			Assets: assets,
+		},
+		BackgroundColour: &options.RGBA{R: 10, G: 10, B: 15, A: 1},
+		OnStartup:        app.startup,
+		Bind:             []interface{}{app},
+		Windows: &windows.Options{
+			WebviewIsTransparent: false,
+			WindowIsTranslucent:  false,
+		},
+	})
+	if err != nil {
+		println("Erreur Wails:", err.Error())
+	}
 }

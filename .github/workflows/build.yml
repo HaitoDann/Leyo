@@ -18,16 +18,24 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
-          cache: false        # ← désactive le cache (go.sum absent)
+          cache: false
 
-      - name: Télécharger les dépendances
-        run: go mod tidy      # ← génère go.sum automatiquement
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-      - name: Compiler Leyo
-        run: go build -o leyo.exe .
+      - name: Installer Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Télécharger dépendances Go
+        run: go mod tidy
+
+      - name: Build Wails
+        run: wails build -o Leyo.exe
 
       - name: Uploader le binaire
         uses: actions/upload-artifact@v4
         with:
           name: leyo-windows
-          path: leyo.exe
+          path: build/bin/Leyo.exe

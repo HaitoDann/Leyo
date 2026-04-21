@@ -1,0 +1,17 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "Leyo",
+  "outputfilename": "Leyo",
+  "frontend": {
+    "dir": "frontend",
+    "install": "npm install",
+    "build": "npm run build",
+    "dev:watcher": "npm run dev",
+    "dev:server:url": "auto"
+  },
+  "info": {
+    "productName": "Leyo Shell",
+    "productVersion": "1.0.0",
+    "copyright": "VinX"
+  }
+}
