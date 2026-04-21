@@ -24,7 +24,7 @@ jobs:
         run: go mod tidy      # ← génère go.sum automatiquement
 
       - name: Compiler Leyo
-        run: go build -o leyo.exe ./...
+        run: go build -o leyo.exe .
 
       - name: Uploader le binaire
         uses: actions/upload-artifact@v4
