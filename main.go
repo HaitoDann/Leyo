@@ -17,7 +17,7 @@ func main() {
 
 	// Charge l'historique au démarrage
 	history := shell.LoadHistory()
-	historyIndex := len(history) // Pointeur sur la position actuelle
+	_ = len(history)
 
 	scanner := bufio.NewScanner(os.Stdin)
 
