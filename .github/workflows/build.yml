@@ -34,8 +34,20 @@ jobs:
       - name: Build Wails
         run: wails build -o Leyo.exe
 
+      - name: Installer NSIS
+        run: choco install nsis -y
+
+      - name: Créer l'installeur
+        run: makensis build/windows/installer.nsi
+
       - name: Uploader le binaire
         uses: actions/upload-artifact@v4
         with:
           name: leyo-windows
           path: build/bin/Leyo.exe
+
+      - name: Uploader l'installeur
+        uses: actions/upload-artifact@v4
+        with:
+          name: leyo-installer
+          path: build/windows/LeyoSetup.exe
