@@ -1,6 +1,58 @@
 let history = [];
 let historyIndex = 0;
+let ghostSuggestion = '';
 
+// ── Commandes connues pour le ghost text ──────────────────────
+const knownCommands = [
+  'ls', 'rm', 'cp', 'mv', 'cat', 'clear', 'pwd', 'mkdir', 'touch', 'cd',
+  'dir', 'del', 'copy', 'move', 'type', 'cls', 'echo', 'find', 'help',
+  'git', 'git add', 'git commit', 'git push', 'git pull', 'git status',
+  'git clone', 'git checkout', 'git branch', 'git log', 'git diff',
+  'go build', 'go run', 'go mod', 'go test', 'go get',
+  'history', 'exit'
+];
+
+// ── Trouve la meilleure suggestion pour le ghost text ─────────
+function findGhostSuggestion(input, history) {
+  if (!input) return '';
+
+  const lower = input.toLowerCase();
+  const candidates = [...knownCommands, ...history];
+
+  for (const cmd of candidates) {
+    const c = cmd.toLowerCase();
+    if (c.startsWith(lower) && c !== lower) {
+      return cmd; // Retourne la première correspondance
+    }
+  }
+  return '';
+}
+
+// ── Met à jour le ghost text affiché ─────────────────────────
+function updateGhost(input) {
+  const ghost = document.getElementById('ghostText');
+  const allCandidates = [...knownCommands, ...history];
+  ghostSuggestion = findGhostSuggestion(input, allCandidates);
+
+  if (ghostSuggestion && input) {
+    // On affiche : [texte tapé invisible][suite grisée]
+    ghost.setAttribute('data-ghost', ghostSuggestion.slice(input.length));
+    ghost.style.paddingLeft = measureTextWidth(input) + 'px';
+  } else {
+    ghost.setAttribute('data-ghost', '');
+  }
+}
+
+// ── Mesure la largeur du texte tapé en pixels ────────────────
+function measureTextWidth(text) {
+  const canvas = measureTextWidth._canvas ||
+    (measureTextWidth._canvas = document.createElement('canvas'));
+  const ctx = canvas.getContext('2d');
+  ctx.font = '13px Cascadia Code, Consolas, Courier New, monospace';
+  return ctx.measureText(text).width;
+}
+
+// ── Init ──────────────────────────────────────────────────────
 async function init() {
   history = await window.go.main.App.GetHistory() || [];
   historyIndex = history.length;
@@ -47,6 +99,7 @@ async function refreshFiles() {
       item.title = 'Double-clic pour naviguer';
       item.ondblclick = () => {
         document.getElementById('commandInput').value = `cd ${f.Name}`;
+        updateGhost(`cd ${f.Name}`);
         document.getElementById('commandInput').focus();
       };
     } else {
@@ -69,6 +122,9 @@ async function refreshFiles() {
 
 async function runCommand(input) {
   if (!input) return;
+
+  // Efface le ghost
+  updateGhost('');
 
   const path = document.getElementById('currentPath').textContent;
   addLine(`[VinX] ${path} > ${input}`, 'out-cmd');
@@ -94,18 +150,9 @@ async function runCommand(input) {
 
   const result = await window.go.main.App.RunCommand(input);
 
-  if (result.error) {
-    addLine('❌  ' + result.error, 'out-error');
-  }
-
-  // Affiche la suggestion si elle existe
-  if (result.suggestion) {
-    addSuggestion(result.suggestion, input);
-  }
-
-  if (result.output) {
-    addLine(result.output, 'out-normal');
-  }
+  if (result.error)      addLine('❌ ' + result.error, 'out-error');
+  if (result.suggestion) addSuggestion(result.suggestion, input);
+  if (result.output)     addLine(result.output, 'out-normal');
 
   const newPath = await window.go.main.App.GetCurrentPath();
   document.getElementById('currentPath').textContent = newPath;
@@ -113,56 +160,70 @@ async function runCommand(input) {
   await refreshFiles();
 }
 
-// Affiche la suggestion avec bouton
 function addSuggestion(suggestion, originalInput) {
   const output = document.getElementById('output');
   const div = document.createElement('div');
   div.className = 'out-suggestion';
   div.innerHTML = `
-    💡 Vouliez-vous dire : 
+    💡 Vouliez-vous dire :
     <span class="suggestion-word">${suggestion}</span>
-    <button class="suggestion-btn" onclick="acceptSuggestion('${suggestion}', '${originalInput}')">
-      Exécuter
-    </button>
-    <button class="suggestion-btn dismiss" onclick="this.parentElement.remove()">
-      Ignorer
-    </button>
+    <button class="suggestion-btn" onclick="acceptSuggestion('${suggestion}', '${originalInput}')">Exécuter</button>
+    <button class="suggestion-btn dismiss" onclick="this.parentElement.remove()">Ignorer</button>
   `;
   output.appendChild(div);
   output.scrollTop = output.scrollHeight;
 }
 
 async function acceptSuggestion(suggestion, originalInput) {
-  // Remplace le premier mot par la suggestion
   const parts = originalInput.trim().split(' ');
   parts[0] = suggestion;
   const corrected = parts.join(' ');
-
   document.querySelector('.out-suggestion')?.remove();
   await runCommand(corrected);
 }
 
+// ── Gestion clavier ───────────────────────────────────────────
+document.getElementById('commandInput').addEventListener('input', (e) => {
+  updateGhost(e.target.value);
+});
+
 document.getElementById('commandInput').addEventListener('keydown', async (e) => {
   const input = document.getElementById('commandInput');
+
+  // → ou Tab : accepte le ghost text
+  if ((e.key === 'ArrowRight' || e.key === 'Tab') && ghostSuggestion) {
+    if (input.selectionStart === input.value.length) {
+      e.preventDefault();
+      input.value = ghostSuggestion;
+      updateGhost('');
+      return;
+    }
+  }
 
   if (e.key === 'Enter') {
     const cmd = input.value.trim();
     input.value = '';
+    updateGhost('');
     await runCommand(cmd);
+
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
     if (historyIndex > 0) {
       historyIndex--;
       input.value = history[historyIndex];
+      updateGhost(input.value);
     }
+
   } else if (e.key === 'ArrowDown') {
     e.preventDefault();
     if (historyIndex < history.length - 1) {
       historyIndex++;
       input.value = history[historyIndex];
+      updateGhost(input.value);
     } else {
       historyIndex = history.length;
       input.value = '';
+      updateGhost('');
     }
   }
 });

@@ -136,12 +136,23 @@ body {
   flex-shrink: 0;
 }
 
-.prompt-user  { color: var(--cyan);    font-weight: bold; }
-.prompt-path  { color: var(--violet); }
-.prompt-arrow { color: var(--magenta); font-weight: bold; }
+.prompt-user  { color: var(--cyan);    font-weight: bold; white-space: nowrap; }
+.prompt-path  { color: var(--violet);  white-space: nowrap; }
+.prompt-arrow { color: var(--magenta); font-weight: bold; white-space: nowrap; }
+
+/* GHOST TEXT */
+.input-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
 
 #commandInput {
+  position: relative;
+  z-index: 2;
   flex: 1;
+  width: 100%;
   background: transparent;
   border: none;
   outline: none;
@@ -150,6 +161,27 @@ body {
   font-size: 13px;
   caret-color: var(--magenta);
   user-select: text;
+}
+
+.ghost-text {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 1;
+  font-family: inherit;
+  font-size: 13px;
+  white-space: pre;
+  color: transparent; /* La partie tapée est invisible */
+}
+
+.ghost-text::after {
+  content: attr(data-ghost);
+  color: var(--muted);
+  opacity: 0.6;
 }
 
 /* SCROLLBAR */
