@@ -2,6 +2,8 @@ package main
 
 import (
 	"embed"
+	"os"
+	"path/filepath"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -14,6 +16,9 @@ var assets embed.FS
 
 func main() {
 	app := NewApp()
+
+	dataDir := filepath.Join(os.Getenv("APPDATA"), "Leyo")
+	os.MkdirAll(dataDir, 0755)
 
 	err := wails.Run(&options.App{
 		Title:     "Leyo Shell",
@@ -30,6 +35,7 @@ func main() {
 		Windows: &windows.Options{
 			WebviewIsTransparent: false,
 			WindowIsTranslucent:  false,
+			WebviewUserDataPath:  dataDir,
 		},
 	})
 	if err != nil {
