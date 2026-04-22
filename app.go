@@ -30,53 +30,45 @@ func (a *App) startup(ctx context.Context) {
 func (a *App) RunCommand(input string) map[string]string {
 	trimmed := strings.TrimSpace(input)
 
-	// Gestion du cd
 	if strings.HasPrefix(trimmed, "cd ") {
 		dir := strings.TrimPrefix(trimmed, "cd ")
 		dir = strings.Trim(dir, "\"")
 		if err := os.Chdir(dir); err != nil {
 			return map[string]string{
-				"output":     "",
-				"error":      err.Error(),
-				"suggestion": "",
+				"output": "", "error": err.Error(), "suggestion": "",
 			}
 		}
 		newPath, _ := os.Getwd()
 		return map[string]string{
-			"output":     "→ " + newPath,
-			"error":      "",
-			"suggestion": "",
+			"output": "→ " + newPath, "error": "", "suggestion": "",
 		}
 	}
 
 	result, errMsg := shell.RunWithOutput(input)
 
-	// Bug 2 fix : on cherche une suggestion même si result n'est pas vide
-	// (commande inconnue de Windows retourne quand même un output texte)
-	suggestion := ""
-	history := shell.LoadHistory()
-	if closest, found := shell.FindClosest(input, history); found {
-		// On ne suggère que si la commande ressemble à une erreur
-		if strings.Contains(strings.ToLower(result+errMsg), "reconnu") ||
-			strings.Contains(strings.ToLower(result+errMsg), "not recognized") ||
-			strings.Contains(strings.ToLower(result+errMsg), "not found") ||
-			errMsg != "" {
-			suggestion = closest
-		}
-	}
-
-	// Bug 3 fix : si Windows retourne une erreur dans result, on la met dans error
-	if errMsg == "" && (strings.Contains(result, "n'est pas reconnu") ||
+	// Détecte si Windows a retourné une erreur dans l'output
+	isWindowsError := strings.Contains(result, "n'est pas reconnu") ||
 		strings.Contains(result, "not recognized") ||
-		strings.Contains(result, "not found")) {
+		strings.Contains(result, "not found") ||
+		strings.Contains(result, "impossible de trouver")
+
+	// Si erreur Windows dans result → on la bascule dans error
+	if isWindowsError {
 		errMsg = result
 		result = ""
 	}
 
+	// Cherche une suggestion dès qu'il y a une erreur
+	suggestion := ""
+	if errMsg != "" || isWindowsError {
+		history := shell.LoadHistory()
+		if closest, found := shell.FindClosest(trimmed, history); found {
+			suggestion = closest
+		}
+	}
+
 	return map[string]string{
-		"output":     result,
-		"error":      errMsg,
-		"suggestion": suggestion,
+		"output": result, "error": errMsg, "suggestion": suggestion,
 	}
 }
 
@@ -100,18 +92,15 @@ func (a *App) GetCurrentPath() string {
 	return dir
 }
 
-// Bug 1 fix : on force le dossier courant avant de lire
 func (a *App) ListFiles() []FileEntry {
 	dir, err := os.Getwd()
 	if err != nil {
 		return []FileEntry{}
 	}
-
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return []FileEntry{}
 	}
-
 	var files []FileEntry
 	for _, e := range entries {
 		if e.IsDir() {
