@@ -376,8 +376,8 @@ document.addEventListener('click', () => {
 // ── Message de bienvenue dans le premier onglet ───────────────
 async function showWelcome() {
   addLine('╔════════════════════════════════════╗', 'out-welcome');
-  addLine('║       LEYO SHELL  v2.0             ║', 'out-welcome');
-  addLine('║  Bienvenue VinX !                  ║', 'out-welcome');
+  addLine('║       LEYO SHELL  v1.4             ║', 'out-welcome');
+  addLine('║  Bienvenue!                        ║', 'out-welcome');
   addLine('║  Ctrl+T : nouvel onglet            ║', 'out-welcome');
   addLine('║  Ctrl+W : fermer onglet            ║', 'out-welcome');
   addLine('╚════════════════════════════════════╝', 'out-welcome');

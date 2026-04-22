@@ -10,11 +10,11 @@
     "dev:server:url": "auto"
   },
   "info": {
-    "productName": "Leyo Shell",
-    "productVersion": "2.0.0",
+    "productName": "Leyo",
+    "productVersion": "1.4",
     "copyright": "VinX",
     "comments": "Shell moderne pour Windows",
-    "fileVersion": "2.0.0"
+    "fileVersion": "1.4"
   },
   "windows": {
     "iconUri": "build/windows/logo.ico"

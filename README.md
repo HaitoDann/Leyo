@@ -3,19 +3,11 @@
   <h1>Leyo Shell</h1>
   <p>Un shell moderne pour Windows — syntaxe Unix, interface élégante</p>
 
-  ![Version](https://img.shields.io/badge/version-1.4.0_SHELDON-7B2FFF)
+  ![Version](https://img.shields.io/badge/version-1.4.0-7B2FFF)
   ![Platform](https://img.shields.io/badge/platform-Windows-00C8FF)
   ![Language](https://img.shields.io/badge/Go-Wails-FF00CC)
   ![Author](https://img.shields.io/badge/by-VinX-FF3399)
 </div>
-
----
-
-## 🗺️ Cheminement — SHELDON v1.X
-
-> SHELDON est le nom de code de la branche 1.X de Leyo.
-> Chaque version a apporté une brique fondamentale au projet,
-> du simple parser en ligne de commande à la vraie app desktop que tu utilises aujourd'hui.
 
 ---
 
