@@ -30,21 +30,40 @@ func (a *App) startup(ctx context.Context) {
 func (a *App) RunCommand(input string) map[string]string {
 	trimmed := strings.TrimSpace(input)
 
-	// Gestion du cd (doit changer le dossier du process Go)
+	// Gestion du cd
 	if strings.HasPrefix(trimmed, "cd ") {
 		dir := strings.TrimPrefix(trimmed, "cd ")
 		dir = strings.Trim(dir, "\"")
 		if err := os.Chdir(dir); err != nil {
-			return map[string]string{"output": "", "error": err.Error()}
+			return map[string]string{
+				"output":     "",
+				"error":      err.Error(),
+				"suggestion": "",
+			}
 		}
 		newPath, _ := os.Getwd()
-		return map[string]string{"output": "→ " + newPath, "error": ""}
+		return map[string]string{
+			"output":     "→ " + newPath,
+			"error":      "",
+			"suggestion": "",
+		}
 	}
 
 	result, errMsg := shell.RunWithOutput(input)
+
+	// Si erreur → cherche une correction
+	suggestion := ""
+	if errMsg != "" || result == "" {
+		history := shell.LoadHistory()
+		if closest, found := shell.FindClosest(input, history); found {
+			suggestion = closest
+		}
+	}
+
 	return map[string]string{
-		"output": result,
-		"error":  errMsg,
+		"output":     result,
+		"error":      errMsg,
+		"suggestion": suggestion,
 	}
 }
 

@@ -94,13 +94,52 @@ async function runCommand(input) {
 
   const result = await window.go.main.App.RunCommand(input);
 
-  if (result.error) addLine('❌ ' + result.error, 'out-error');
-  if (result.output) addLine(result.output, 'out-normal');
+  if (result.error) {
+    addLine('❌  ' + result.error, 'out-error');
+  }
+
+  // Affiche la suggestion si elle existe
+  if (result.suggestion) {
+    addSuggestion(result.suggestion, input);
+  }
+
+  if (result.output) {
+    addLine(result.output, 'out-normal');
+  }
 
   const newPath = await window.go.main.App.GetCurrentPath();
   document.getElementById('currentPath').textContent = newPath;
 
   await refreshFiles();
+}
+
+// Affiche la suggestion avec bouton
+function addSuggestion(suggestion, originalInput) {
+  const output = document.getElementById('output');
+  const div = document.createElement('div');
+  div.className = 'out-suggestion';
+  div.innerHTML = `
+    💡 Vouliez-vous dire : 
+    <span class="suggestion-word">${suggestion}</span>
+    <button class="suggestion-btn" onclick="acceptSuggestion('${suggestion}', '${originalInput}')">
+      Exécuter
+    </button>
+    <button class="suggestion-btn dismiss" onclick="this.parentElement.remove()">
+      Ignorer
+    </button>
+  `;
+  output.appendChild(div);
+  output.scrollTop = output.scrollHeight;
+}
+
+async function acceptSuggestion(suggestion, originalInput) {
+  // Remplace le premier mot par la suggestion
+  const parts = originalInput.trim().split(' ');
+  parts[0] = suggestion;
+  const corrected = parts.join(' ');
+
+  document.querySelector('.out-suggestion')?.remove();
+  await runCommand(corrected);
 }
 
 document.getElementById('commandInput').addEventListener('keydown', async (e) => {

@@ -156,3 +156,43 @@ body {
 ::-webkit-scrollbar       { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--violet); border-radius: 2px; }
+
+/* SUGGESTION */
+.out-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--violet);
+  padding: 4px 0;
+  flex-wrap: wrap;
+}
+
+.suggestion-word {
+  color: var(--magenta);
+  font-weight: bold;
+}
+
+.suggestion-btn {
+  background: var(--violet);
+  color: white;
+  border: none;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.suggestion-btn:hover { background: var(--magenta); }
+
+.suggestion-btn.dismiss {
+  background: transparent;
+  border: 1px solid var(--muted);
+  color: var(--muted);
+}
+
+.suggestion-btn.dismiss:hover {
+  border-color: var(--error);
+  color: var(--error);
+}
