@@ -15,5 +15,8 @@
     "copyright": "VinX",
     "comments": "Shell moderne pour Windows",
     "fileVersion": "2.0.0"
+  },
+  "windows": {
+    "iconUri": "build/windows/logo.ico"
   }
 }
