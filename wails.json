@@ -11,7 +11,9 @@
   },
   "info": {
     "productName": "Leyo Shell",
-    "productVersion": "1.0.0",
-    "copyright": "VinX"
+    "productVersion": "2.0.0",
+    "copyright": "VinX",
+    "comments": "Shell moderne pour Windows",
+    "fileVersion": "2.0.0"
   }
 }

@@ -17,10 +17,11 @@ func Run(input string) {
 }
 
 func RunWithOutput(input string) (string, string) {
+	// Résout les alias avant d'exécuter
+	input = ResolveAlias(input)
 	command := Parse(input)
-	cmd := exec.Command("cmd", "/C", command)
 
-	// ← Masque complètement la fenêtre cmd.exe
+	cmd := exec.Command("cmd", "/C", command)
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		HideWindow: true,
 	}

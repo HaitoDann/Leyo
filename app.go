@@ -30,9 +30,7 @@ func (a *App) startup(ctx context.Context) {
 func (a *App) RunCommand(input string) map[string]string {
 	trimmed := strings.TrimSpace(input)
 
-	// ── Gestion complète du cd ─────────────────────────────────
 	if trimmed == "cd" {
-		// cd seul → retourne à la racine du lecteur courant
 		current, _ := os.Getwd()
 		root := filepath.VolumeName(current) + `\`
 		if err := os.Chdir(root); err != nil {
@@ -46,21 +44,14 @@ func (a *App) RunCommand(input string) map[string]string {
 		dir := strings.TrimPrefix(trimmed, "cd ")
 		dir = strings.Trim(dir, "\"")
 		dir = strings.TrimSpace(dir)
-
-		// Résout le chemin correctement (relatif ou absolu)
 		if !filepath.IsAbs(dir) {
 			current, _ := os.Getwd()
 			dir = filepath.Join(current, dir)
 		}
-
-		// Nettoie le chemin (.., ., doubles séparateurs)
 		dir = filepath.Clean(dir)
-
 		if err := os.Chdir(dir); err != nil {
 			return map[string]string{
-				"output":     "",
-				"error":      "Impossible d'accéder à : " + dir,
-				"suggestion": "",
+				"output": "", "error": "Impossible d'accéder à : " + dir, "suggestion": "",
 			}
 		}
 		newPath, _ := os.Getwd()
@@ -137,4 +128,19 @@ func (a *App) ListFiles() []FileEntry {
 		}
 	}
 	return files
+}
+
+func (a *App) GetAliases() map[string]string {
+	return shell.LoadAliases()
+}
+
+func (a *App) SaveAlias(name, command string) string {
+	if err := shell.SaveAlias(name, command); err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
+func (a *App) DeleteAlias(name string) {
+	shell.DeleteAlias(name)
 }

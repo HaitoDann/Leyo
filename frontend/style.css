@@ -40,29 +40,23 @@ body {
   overflow: hidden;
 }
 
-/* Bande dégradée géométrique en haut */
 .header::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
   background: linear-gradient(90deg,
-    var(--cyan) 0%,
-    var(--blue) 30%,
-    var(--violet) 60%,
-    var(--magenta) 80%,
+    var(--cyan) 0%, var(--blue) 30%,
+    var(--violet) 60%, var(--magenta) 80%,
     var(--rose) 100%
   );
 }
 
-/* Polygone décoratif côté droit du header */
 .header::after {
   content: '';
   position: absolute;
-  right: -20px;
-  top: 0;
-  width: 200px;
-  height: 100%;
+  right: -20px; top: 0;
+  width: 200px; height: 100%;
   background: linear-gradient(135deg,
     transparent 40%,
     rgba(123, 47, 255, 0.08) 40%,
@@ -76,13 +70,12 @@ body {
   font-weight: 900;
   letter-spacing: 6px;
   background: linear-gradient(90deg,
-    var(--cyan) 0%,
-    var(--blue) 40%,
-    var(--violet) 70%,
-    var(--magenta) 100%
+    var(--cyan) 0%, var(--blue) 40%,
+    var(--violet) 70%, var(--magenta) 100%
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  white-space: nowrap;
 }
 
 .version {
@@ -90,16 +83,79 @@ body {
   color: var(--muted);
   letter-spacing: 2px;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
-/* Losange décoratif */
 .header-diamond {
-  margin-left: auto;
-  width: 8px;
-  height: 8px;
+  width: 8px; height: 8px;
   background: linear-gradient(135deg, var(--cyan), var(--violet));
   transform: rotate(45deg);
   opacity: 0.6;
+  flex-shrink: 0;
+}
+
+/* ── ONGLETS ──────────────────────────────────── */
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 14px;
+  border-radius: 4px 4px 0 0;
+  font-size: 11px;
+  cursor: pointer;
+  background: var(--bg3);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.tab:hover { color: var(--text); }
+
+.tab.active {
+  background: var(--bg);
+  color: var(--cyan);
+  border-color: var(--violet);
+}
+
+.tab-close {
+  font-size: 10px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.tab-close:hover { color: var(--error); }
+
+.tab-add {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  width: 24px; height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.tab-add:hover {
+  color: var(--cyan);
+  border-color: var(--cyan);
 }
 
 /* ── LAYOUT ───────────────────────────────────── */
@@ -119,16 +175,13 @@ body {
   position: relative;
 }
 
-/* Ligne verticale dégradée à droite */
 .sidebar::after {
   content: '';
   position: absolute;
   right: 0; top: 0; bottom: 0;
   width: 1px;
   background: linear-gradient(180deg,
-    var(--cyan) 0%,
-    var(--violet) 50%,
-    transparent 100%
+    var(--cyan) 0%, var(--violet) 50%, transparent 100%
   );
 }
 
@@ -144,7 +197,6 @@ body {
   gap: 8px;
 }
 
-/* Petit triangle géométrique */
 .sidebar-title::before {
   content: '◈';
   color: var(--cyan);
@@ -172,12 +224,10 @@ body {
 
 .file-item:hover {
   background: linear-gradient(90deg,
-    rgba(123, 47, 255, 0.15) 0%,
-    transparent 100%
+    rgba(123, 47, 255, 0.15) 0%, transparent 100%
   );
 }
 
-/* Indicateur gauche au hover */
 .file-item:hover::before {
   content: '';
   position: absolute;
@@ -205,16 +255,13 @@ body {
   position: relative;
 }
 
-/* Polygones décoratifs en arrière-plan */
 .terminal::before {
   content: '';
   position: absolute;
   top: -60px; right: -60px;
   width: 300px; height: 300px;
-  background: radial-gradient(
-    circle,
-    rgba(123, 47, 255, 0.04) 0%,
-    transparent 70%
+  background: radial-gradient(circle,
+    rgba(123, 47, 255, 0.04) 0%, transparent 70%
   );
   pointer-events: none;
 }
@@ -231,19 +278,8 @@ body {
 .out-error   { color: var(--error); }
 .out-success { color: var(--success); }
 .out-muted   { color: var(--muted); }
-
-.out-cmd {
-  color: var(--muted);
-  margin-top: 8px;
-  padding-left: 0;
-  opacity: 0.7;
-}
-
-.out-welcome {
-  color: var(--violet);
-  font-weight: bold;
-  letter-spacing: 1px;
-}
+.out-cmd     { color: var(--muted); margin-top: 8px; opacity: 0.7; }
+.out-welcome { color: var(--violet); font-weight: bold; letter-spacing: 1px; }
 
 /* ── PROMPT INPUT ─────────────────────────────── */
 .input-area {
@@ -260,7 +296,6 @@ body {
   overflow: hidden;
 }
 
-/* Bord gauche coloré du prompt */
 .input-area::before {
   content: '';
   position: absolute;
@@ -273,7 +308,7 @@ body {
 .prompt-path  { color: var(--violet);  white-space: nowrap; font-size: 12px; }
 .prompt-arrow { color: var(--magenta); font-weight: bold; white-space: nowrap; }
 
-/* GHOST TEXT */
+/* ── GHOST TEXT ───────────────────────────────── */
 .input-wrapper {
   flex: 1;
   position: relative;
@@ -337,8 +372,6 @@ body {
   color: var(--text);
   font-size: 12px;
 }
-
-.suggestion-label { color: var(--muted); }
 
 .suggestion-word {
   color: var(--magenta);
