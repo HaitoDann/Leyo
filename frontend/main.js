@@ -2,7 +2,6 @@ let history = [];
 let historyIndex = 0;
 let ghostSuggestion = '';
 
-// ── Commandes connues pour le ghost text ──────────────────────
 const knownCommands = [
   'ls', 'rm', 'cp', 'mv', 'cat', 'clear', 'pwd', 'mkdir', 'touch', 'cd',
   'dir', 'del', 'copy', 'move', 'type', 'cls', 'echo', 'find', 'help',
@@ -12,30 +11,22 @@ const knownCommands = [
   'history', 'exit'
 ];
 
-// ── Trouve la meilleure suggestion pour le ghost text ─────────
 function findGhostSuggestion(input, history) {
   if (!input) return '';
-
   const lower = input.toLowerCase();
   const candidates = [...knownCommands, ...history];
-
   for (const cmd of candidates) {
     const c = cmd.toLowerCase();
-    if (c.startsWith(lower) && c !== lower) {
-      return cmd; // Retourne la première correspondance
-    }
+    if (c.startsWith(lower) && c !== lower) return cmd;
   }
   return '';
 }
 
-// ── Met à jour le ghost text affiché ─────────────────────────
 function updateGhost(input) {
   const ghost = document.getElementById('ghostText');
   const allCandidates = [...knownCommands, ...history];
   ghostSuggestion = findGhostSuggestion(input, allCandidates);
-
   if (ghostSuggestion && input) {
-    // On affiche : [texte tapé invisible][suite grisée]
     ghost.setAttribute('data-ghost', ghostSuggestion.slice(input.length));
     ghost.style.paddingLeft = measureTextWidth(input) + 'px';
   } else {
@@ -43,7 +34,6 @@ function updateGhost(input) {
   }
 }
 
-// ── Mesure la largeur du texte tapé en pixels ────────────────
 function measureTextWidth(text) {
   const canvas = measureTextWidth._canvas ||
     (measureTextWidth._canvas = document.createElement('canvas'));
@@ -52,7 +42,6 @@ function measureTextWidth(text) {
   return ctx.measureText(text).width;
 }
 
-// ── Init ──────────────────────────────────────────────────────
 async function init() {
   history = await window.go.main.App.GetHistory() || [];
   historyIndex = history.length;
@@ -88,7 +77,6 @@ async function refreshFiles() {
   files.forEach(f => {
     const item = document.createElement('div');
     item.className = 'file-item';
-
     const icon = document.createElement('span');
     const name = document.createElement('span');
     name.textContent = f.Name;
@@ -123,7 +111,6 @@ async function refreshFiles() {
 async function runCommand(input) {
   if (!input) return;
 
-  // Efface le ghost
   updateGhost('');
 
   const path = document.getElementById('currentPath').textContent;
@@ -190,7 +177,41 @@ document.getElementById('commandInput').addEventListener('input', (e) => {
 document.getElementById('commandInput').addEventListener('keydown', async (e) => {
   const input = document.getElementById('commandInput');
 
-  // → ou Tab : accepte le ghost text
+  // ── Ctrl+C → copie le texte sélectionné dans l'output ───────
+  if (e.ctrlKey && e.key === 'c') {
+    const selection = window.getSelection().toString();
+    if (selection) {
+      e.preventDefault();
+      await navigator.clipboard.writeText(selection);
+      return;
+    }
+    // Pas de sélection → comportement normal (annule la saisie)
+    input.value = '';
+    updateGhost('');
+    return;
+  }
+
+  // ── Ctrl+V → colle dans le prompt ───────────────────────────
+  if (e.ctrlKey && e.key === 'v') {
+    e.preventDefault();
+    const text = await navigator.clipboard.readText();
+    const pos = input.selectionStart;
+    const before = input.value.slice(0, pos);
+    const after = input.value.slice(input.selectionEnd);
+    input.value = before + text + after;
+    input.selectionStart = input.selectionEnd = pos + text.length;
+    updateGhost(input.value);
+    return;
+  }
+
+  // ── Ctrl+A → sélectionne tout le prompt ─────────────────────
+  if (e.ctrlKey && e.key === 'a') {
+    e.preventDefault();
+    input.select();
+    return;
+  }
+
+  // ── → ou Tab : accepte le ghost text ────────────────────────
   if ((e.key === 'ArrowRight' || e.key === 'Tab') && ghostSuggestion) {
     if (input.selectionStart === input.value.length) {
       e.preventDefault();
