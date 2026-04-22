@@ -4,40 +4,68 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Leyo Shell</title>
+  <!-- JetBrains Mono depuis Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
   <div class="app">
 
     <div class="header">
-      <img src="assets/logo.png" height="32" width="32" style="object-fit: contain;"/>
+      <img src="assets/logo.png" height="28" width="28" style="object-fit: contain; opacity: 0.9;"/>
       <span class="logo">LEYO</span>
-      <span class="version">v1.4 — Shell by VinX</span>
       <div class="tabs" id="tabs"></div>
-      <button class="tab-add" id="tabAdd" title="Nouvel onglet">＋</button>
-      <div class="header-diamond"></div>
+      <button class="tab-add" id="tabAdd" title="Nouvel onglet (Ctrl+T)">+</button>
+      <div class="header-right">
+        <span class="header-time" id="headerTime"></span>
+      </div>
     </div>
 
     <div class="main">
 
       <div class="sidebar">
-        <div class="sidebar-title">Fichiers</div>
+        <div class="sidebar-title">Explorer</div>
+        <div class="sidebar-path" id="sidebarPath"></div>
         <div class="file-list" id="fileList"></div>
       </div>
 
       <div class="terminal">
         <div class="output" id="output"></div>
-        <div class="input-area">
-          <span class="prompt-user">[VinX]</span>
-          <span class="prompt-path" id="currentPath">C:\</span>
-          <span class="prompt-arrow">›</span>
+
+        <!-- Prompt Powerline -->
+        <div class="prompt-bar">
+          <div class="prompt-segments">
+            <div class="seg seg-user">
+              <span class="seg-icon">❯</span>
+              <span id="segUser">VinX</span>
+            </div>
+            <div class="seg-arrow seg-arrow-user"></div>
+
+            <div class="seg seg-path">
+              <span id="segPath">C:\</span>
+            </div>
+            <div class="seg-arrow seg-arrow-path"></div>
+
+            <div class="seg seg-git" id="segGitBlock" style="display:none">
+              <span class="seg-icon">⎇</span>
+              <span id="segGit"></span>
+            </div>
+            <div class="seg-arrow seg-arrow-git" id="segGitArrow" style="display:none"></div>
+
+            <div class="seg seg-status" id="segStatusBlock">
+              <span id="segStatus">●</span>
+            </div>
+            <div class="seg-arrow seg-arrow-status"></div>
+          </div>
+
           <div class="input-wrapper">
             <input type="text" id="commandInput" autocomplete="off" spellcheck="false"/>
             <span class="ghost-text" id="ghostText"></span>
           </div>
         </div>
-      </div>
 
+      </div>
     </div>
   </div>
   <script src="main.js"></script>

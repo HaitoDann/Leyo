@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -128,6 +129,21 @@ func (a *App) ListFiles() []FileEntry {
 		}
 	}
 	return files
+}
+
+// Retourne la branche Git courante (ou "" si pas un repo Git)
+func (a *App) GetGitBranch() string {
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	cmd.Dir, _ = os.Getwd()
+	out, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	branch := strings.TrimSpace(string(out))
+	if branch == "HEAD" {
+		return ""
+	}
+	return branch
 }
 
 func (a *App) GetAliases() map[string]string {
