@@ -2,7 +2,6 @@ package shell
 
 import "strings"
 
-// Liste de toutes les commandes connues de Leyo
 var knownCommands = []string{
 	// Unix
 	"ls", "rm", "cp", "mv", "cat", "clear", "pwd", "mkdir", "touch", "cd",
@@ -17,7 +16,6 @@ var knownCommands = []string{
 	"history", "exit",
 }
 
-// Calcule la distance de Levenshtein entre deux strings
 func levenshtein(a, b string) int {
 	la, lb := len(a), len(b)
 	dp := make([][]int, la+1)
@@ -52,10 +50,13 @@ func min3(a, b, c int) int {
 	return c
 }
 
-// Trouve la commande la plus proche
 func FindClosest(input string, history []string) (string, bool) {
 	input = strings.ToLower(strings.TrimSpace(input))
-	firstWord := strings.Fields(input)[0]
+	fields := strings.Fields(input)
+	if len(fields) == 0 {
+		return "", false
+	}
+	firstWord := fields[0]
 
 	// Fusionne commandes connues + historique
 	candidates := append(knownCommands, history...)
@@ -64,16 +65,25 @@ func FindClosest(input string, history []string) (string, bool) {
 	bestDist := 99
 
 	for _, cmd := range candidates {
-		cmd = strings.ToLower(strings.Fields(cmd)[0])
-		dist := levenshtein(firstWord, cmd)
+		cmdFields := strings.Fields(strings.ToLower(cmd))
+		if len(cmdFields) == 0 {
+			continue
+		}
+		cmdFirst := cmdFields[0]
+
+		// ← FIX : on ignore les candidats identiques à l'input
+		if cmdFirst == firstWord {
+			continue
+		}
+
+		dist := levenshtein(firstWord, cmdFirst)
 		if dist < bestDist {
 			bestDist = dist
-			bestMatch = cmd
+			bestMatch = cmdFirst
 		}
 	}
 
-	// Seuil : on ne suggère que si la distance est raisonnable
-	if bestDist <= 2 && bestMatch != firstWord {
+	if bestDist <= 2 && bestMatch != "" {
 		return bestMatch, true
 	}
 	return "", false
