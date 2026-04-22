@@ -1,5 +1,5 @@
 !define APP_NAME "Leyo Shell"
-!define APP_VERSION "2.0.0"
+!define APP_VERSION "1.4.0"
 !define APP_PUBLISHER "VinX"
 !define APP_EXE "Leyo.exe"
 !define INSTALL_DIR "$PROGRAMFILES64\Leyo"
@@ -11,16 +11,14 @@ InstallDirRegKey HKLM "Software\Leyo" "InstallDir"
 RequestExecutionLevel admin
 SetCompressor lzma
 
-; Pages
-Page welcome
+; Pages installation
 Page directory
 Page instfiles
-Page finish
 
+; Pages désinstallation
 UninstPage uninstConfirm
 UninstPage instfiles
 
-; Section principale
 Section "Leyo Shell" SEC01
   SetOutPath "$INSTDIR"
   File "..\..\build\bin\${APP_EXE}"
@@ -36,7 +34,7 @@ Section "Leyo Shell" SEC01
   CreateShortcut "$SMPROGRAMS\Leyo\Désinstaller Leyo.lnk" \
     "$INSTDIR\uninstall.exe"
 
-  ; Registre — ajout/suppression de programmes
+  ; Registre
   WriteRegStr HKLM \
     "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leyo" \
     "DisplayName" "${APP_NAME}"
