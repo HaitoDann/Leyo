@@ -1,36 +1,31 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  /* Fond — légèrement transparent pour l'effet Acrylic */
   --bg:        rgba(8, 8, 14, 0.85);
   --bg2:       rgba(11, 11, 20, 0.90);
   --bg3:       rgba(14, 14, 24, 0.95);
 
-  /* Palette principale — moins saturée, plus douce */
   --cyan:      #5BC8E8;
   --blue:      #5577DD;
   --violet:    #8855EE;
   --magenta:   #CC44AA;
   --rose:      #EE4488;
 
-  /* Segments Powerline */
   --seg-user:  #1A1A35;
   --seg-path:  #12122A;
   --seg-git:   #0F1F2A;
   --seg-ok:    #0A2018;
   --seg-fail:  #2A0A10;
 
-  /* Texte — hiérarchie claire */
-  --text:      #D8D8E8;   /* texte principal — blanc cassé */
-  --text-dim:  #8888AA;   /* texte secondaire */
-  --text-mute: #44445A;   /* texte très discret */
+  --text:      #D8D8E8;
+  --text-dim:  #8888AA;
+  --text-mute: #606080;   /* ← relevé de 30% à 50% pour lisibilité */
 
-  /* États */
   --success:   #44CC88;
   --error:     #EE4455;
   --warning:   #DDAA33;
 
-  --border:    rgba(255, 255, 255, 0.06);
+  --border:    rgba(255, 255, 255, 0.05);
 }
 
 body {
@@ -57,7 +52,6 @@ body {
   position: relative;
 }
 
-/* Bande dégradée top */
 .header::before {
   content: '';
   position: absolute;
@@ -87,9 +81,11 @@ body {
   gap: 16px;
 }
 
+/* ← Horloge plus visible */
 .header-time {
-  font-size: 11px;
-  color: var(--text-mute);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
   letter-spacing: 1px;
   font-variant-numeric: tabular-nums;
 }
@@ -98,17 +94,18 @@ body {
 .tabs {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   flex: 1;
   overflow: hidden;
 }
 
+/* ← border-radius plus généreux + padding plus aéré */
 .tab {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 3px 14px;
-  border-radius: 4px;
+  padding: 4px 16px;
+  border-radius: 6px;       /* ← était 4px */
   font-size: 11px;
   cursor: pointer;
   background: transparent;
@@ -142,7 +139,7 @@ body {
   border: 1px solid var(--border);
   color: var(--text-mute);
   width: 22px; height: 22px;
-  border-radius: 4px;
+  border-radius: 6px;       /* ← harmonisé avec les onglets */
   cursor: pointer;
   font-size: 15px;
   display: flex;
@@ -170,28 +167,29 @@ body {
   flex-direction: column;
   overflow: hidden;
   position: relative;
-  border-right: 1px solid var(--border);
+  /* ← bordure subtile 5% blanc au lieu d'une couleur vive */
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* ← Plus de padding en haut pour laisser respirer */
 .sidebar-title {
-  padding: 10px 16px 6px;
+  padding: 14px 16px 6px;   /* ← était 10px */
   font-size: 9px;
   letter-spacing: 2px;
   color: var(--text-mute);
   text-transform: uppercase;
 }
 
+/* ← Chemin moins saturé */
 .sidebar-path {
-  padding: 0 16px 8px;
+  padding: 0 16px 10px;
   font-size: 10px;
-  color: var(--violet);
-  opacity: 0.7;
+  color: var(--text-mute);   /* ← était var(--violet) trop vif */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .file-list {
@@ -200,30 +198,34 @@ body {
   padding: 4px 0;
 }
 
+/* ← Alignement strict sur colonne verticale */
 .file-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 16px;
+  gap: 0;                    /* ← géré par les largeurs fixes */
+  padding: 5px 0 5px 14px;  /* ← padding gauche fixe pour tous */
   cursor: pointer;
   transition: background 0.1s;
   font-size: 11.5px;
   white-space: nowrap;
   overflow: hidden;
-  color: var(--text-dim);
+  /* ← gris bleuté discret pour inactif */
+  color: #6A6A8A;
   line-height: 1.6;
 }
 
 .file-item:hover {
-  background: rgba(136, 85, 238, 0.08);
-  color: var(--text);
+  background: rgba(136, 85, 238, 0.07);
+  color: var(--text-dim);
 }
 
+/* ← Icône dans un bloc de largeur fixe — alignement parfait */
 .file-item .icon {
-  font-size: 12px;
+  font-size: 11px;
   flex-shrink: 0;
-  width: 16px;
+  width: 20px;               /* ← largeur fixe pour tous les icônes */
   text-align: center;
+  display: inline-block;
 }
 
 .file-item .fname {
@@ -231,7 +233,7 @@ body {
   text-overflow: ellipsis;
 }
 
-/* Couleurs par type */
+/* Couleurs — réservées aux types, pas à l'état inactif */
 .type-dir     { color: var(--cyan); }
 .type-go      { color: #5BC8CC; }
 .type-exe     { color: var(--success); }
@@ -241,6 +243,9 @@ body {
 .type-git     { color: var(--magenta); opacity: 0.8; }
 .type-sys     { color: var(--text-mute); }
 .type-other   { color: var(--text-mute); }
+
+/* Au hover → les noms de dossiers reprennent leur couleur */
+.file-item:hover .fname.type-dir { color: var(--cyan); }
 
 /* ── TERMINAL ─────────────────────────────────── */
 .terminal {
@@ -259,28 +264,12 @@ body {
   user-select: text;
 }
 
-/* Typographie output */
-.out-normal  {
-  color: var(--text);
-  white-space: pre-wrap;
-  word-break: break-all;
-  font-weight: 300;
-}
+.out-normal  { color: var(--text); white-space: pre-wrap; word-break: break-all; font-weight: 300; }
 .out-error   { color: var(--error); }
 .out-success { color: var(--success); }
 .out-muted   { color: var(--text-mute); }
-.out-cmd     {
-  color: var(--text-mute);
-  margin-top: 10px;
-  font-size: 11px;
-  letter-spacing: 0.3px;
-}
-.out-welcome {
-  color: var(--violet);
-  opacity: 0.7;
-  font-size: 11px;
-  letter-spacing: 1px;
-}
+.out-cmd     { color: var(--text-mute); margin-top: 10px; font-size: 11px; letter-spacing: 0.3px; }
+.out-welcome { color: var(--violet); opacity: 0.8; font-size: 11px; letter-spacing: 1px; }
 
 /* ── PROMPT POWERLINE ─────────────────────────── */
 .prompt-bar {
@@ -299,7 +288,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Segment générique */
 .seg {
   display: flex;
   align-items: center;
@@ -312,7 +300,6 @@ body {
 
 .seg-icon { font-size: 11px; opacity: 0.8; }
 
-/* Couleurs des segments */
 .seg-user {
   background: var(--seg-user);
   color: var(--cyan);
@@ -332,7 +319,6 @@ body {
   font-size: 11px;
 }
 
-/* Statut dernière commande */
 .seg-status {
   background: var(--seg-ok);
   color: var(--success);
@@ -345,34 +331,22 @@ body {
   color: var(--error);
 }
 
-/* Flèches Powerline entre segments */
+/* ← Flèches Powerline collées — pas d'espace entre segments */
 .seg-arrow {
   width: 0; height: 0;
   border-top: 14px solid transparent;
   border-bottom: 14px solid transparent;
   flex-shrink: 0;
+  margin: 0;                 /* ← supprime tout margin résiduel */
+  display: block;
 }
 
-.seg-arrow-user {
-  border-left: 8px solid var(--seg-user);
-}
+.seg-arrow-user   { border-left: 8px solid var(--seg-user); }
+.seg-arrow-path   { border-left: 8px solid var(--seg-path); }
+.seg-arrow-git    { border-left: 8px solid var(--seg-git); }
+.seg-arrow-status { border-left: 8px solid var(--seg-ok); }
 
-.seg-arrow-path {
-  border-left: 8px solid var(--seg-path);
-}
-
-.seg-arrow-git {
-  border-left: 8px solid var(--seg-git);
-}
-
-.seg-arrow-status {
-  border-left: 8px solid var(--seg-ok);
-}
-
-.seg-status.fail ~ .seg-arrow-status,
-.seg-arrow-status.fail {
-  border-left-color: var(--seg-fail);
-}
+.seg-arrow-status.fail { border-left-color: var(--seg-fail); }
 
 /* ── INPUT & GHOST TEXT ───────────────────────── */
 .input-wrapper {
@@ -395,10 +369,8 @@ body {
   font-family: inherit;
   font-size: 13px;
   font-weight: 400;
-  /* Curseur avec effet de lueur subtil */
   caret-color: var(--cyan);
   user-select: text;
-  text-shadow: 0 0 8px rgba(91, 200, 232, 0.0);
   animation: cursorGlow 2s ease-in-out infinite;
 }
 
@@ -429,10 +401,7 @@ body {
 /* ── SCROLLBAR ────────────────────────────────── */
 ::-webkit-scrollbar       { width: 2px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: rgba(136, 85, 238, 0.3);
-  border-radius: 2px;
-}
+::-webkit-scrollbar-thumb { background: rgba(136, 85, 238, 0.3); border-radius: 2px; }
 
 /* ── SUGGESTION ───────────────────────────────── */
 .out-suggestion {
@@ -463,10 +432,7 @@ body {
   transition: all 0.15s;
 }
 
-.suggestion-btn:hover {
-  background: rgba(136, 85, 238, 0.35);
-  border-color: var(--violet);
-}
+.suggestion-btn:hover { background: rgba(136, 85, 238, 0.35); border-color: var(--violet); }
 
 .suggestion-btn.dismiss {
   background: transparent;
@@ -474,7 +440,4 @@ body {
   color: var(--text-mute);
 }
 
-.suggestion-btn.dismiss:hover {
-  border-color: var(--error);
-  color: var(--error);
-}
+.suggestion-btn.dismiss:hover { border-color: var(--error); color: var(--error); }
