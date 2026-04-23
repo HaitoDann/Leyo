@@ -44,7 +44,7 @@ async function switchTab(id) {
   document.getElementById('segPath').textContent = activeTab.path;
   document.getElementById('sidebarPath').textContent = activeTab.path;
   document.getElementById('commandInput').value = '';
-  updateGhost('');
+  await updateGhost('');
   renderTabs();
 
   await window.go.main.App.RunCommand(`cd "${activeTab.path}"`);
@@ -98,15 +98,15 @@ function updateStatus(ok) {
   if (ok) {
     seg.className = 'seg seg-status';
     dot.textContent = '●';
-    if (arrow) { arrow.className = 'seg-arrow seg-arrow-status'; }
+    if (arrow) arrow.className = 'seg-arrow seg-arrow-status';
   } else {
     seg.className = 'seg seg-status fail';
     dot.textContent = '✕';
-    if (arrow) { arrow.className = 'seg-arrow seg-arrow-status fail'; }
+    if (arrow) arrow.className = 'seg-arrow seg-arrow-status fail';
   }
 }
 
-// ── Ghost text ────────────────────────────────────────────────
+// ── Ghost text + autocomplétion chemins ───────────────────────
 const knownCommands = [
   'ls','rm','cp','mv','cat','clear','pwd','mkdir','touch','cd',
   'dir','del','copy','move','type','cls','echo','find','help',
@@ -115,6 +115,28 @@ const knownCommands = [
   'go build','go run','go mod','go test','go get',
   'history','exit','alias','unalias'
 ];
+
+async function completePathSuggestion(input) {
+  if (!input) return '';
+
+  const cdMatch = input.match(/^(cd\s+)(.*)$/i);
+  if (cdMatch) {
+    const prefix  = cdMatch[1]; // "cd "
+    const partial = cdMatch[2]; // début du chemin tapé
+
+    const files = await window.go.main.App.ListFiles();
+    const dirs = files.filter(f => f.IsDir);
+
+    const match = dirs.find(d =>
+      d.Name.toLowerCase().startsWith(partial.toLowerCase()) &&
+      d.Name.toLowerCase() !== partial.toLowerCase()
+    );
+
+    if (match) return prefix + match.Name;
+  }
+
+  return '';
+}
 
 function findGhostSuggestion(input) {
   if (!input) return '';
@@ -125,9 +147,17 @@ function findGhostSuggestion(input) {
   return '';
 }
 
-function updateGhost(input) {
+async function updateGhost(input) {
   const ghost = document.getElementById('ghostText');
-  ghostSuggestion = findGhostSuggestion(input);
+
+  // Priorité 1 — autocomplétion de chemin (cd + Tab)
+  let suggestion = await completePathSuggestion(input);
+
+  // Priorité 2 — ghost text sur commandes connues
+  if (!suggestion) suggestion = findGhostSuggestion(input);
+
+  ghostSuggestion = suggestion;
+
   if (ghostSuggestion && input) {
     ghost.setAttribute('data-ghost', ghostSuggestion.slice(input.length));
     ghost.style.paddingLeft = measureTextWidth(input) + 'px';
@@ -137,7 +167,8 @@ function updateGhost(input) {
 }
 
 function measureTextWidth(text) {
-  const canvas = measureTextWidth._canvas || (measureTextWidth._canvas = document.createElement('canvas'));
+  const canvas = measureTextWidth._canvas ||
+    (measureTextWidth._canvas = document.createElement('canvas'));
   const ctx = canvas.getContext('2d');
   ctx.font = "13px 'JetBrains Mono', Consolas, monospace";
   return ctx.measureText(text).width;
@@ -162,26 +193,25 @@ function addLine(text, cls = 'out-normal') {
 }
 
 // ── Sidebar ───────────────────────────────────────────────────
-// Icônes selon nom et type
 function getFileIcon(f) {
   if (f.IsDir) {
     const lower = f.Name.toLowerCase();
-    if (['.git'].includes(lower))                     return { icon: '⎇', cls: 'type-git' };
-    if (['windows', 'system32'].includes(lower))      return { icon: '⊞', cls: 'type-sys' };
-    if (['node_modules'].includes(lower))             return { icon: '⬡', cls: 'type-other' };
-    if (['$recycle.bin'].includes(lower))             return { icon: '◌', cls: 'type-sys' };
+    if (lower === '.git')                        return { icon: '⎇', cls: 'type-git' };
+    if (['windows','system32'].includes(lower))  return { icon: '⊞', cls: 'type-sys' };
+    if (lower === 'node_modules')                return { icon: '⬡', cls: 'type-other' };
+    if (lower === '$recycle.bin')                return { icon: '◌', cls: 'type-sys' };
     return { icon: '▶', cls: 'type-dir' };
   }
   switch ((f.Ext || '').toLowerCase()) {
-    case '.go':               return { icon: '◆', cls: 'type-go' };
-    case '.exe': case '.msi': return { icon: '⚙', cls: 'type-exe' };
-    case '.md':               return { icon: '≡', cls: 'type-md' };
-    case '.yml': case '.yaml':return { icon: '◈', cls: 'type-yml' };
-    case '.json':             return { icon: '◈', cls: 'type-json' };
-    case '.js': case '.ts':   return { icon: '◆', cls: 'type-json' };
-    case '.css':              return { icon: '◈', cls: 'type-yml' };
-    case '.html':             return { icon: '◈', cls: 'type-go' };
-    default:                  return { icon: '·', cls: 'type-other' };
+    case '.go':                return { icon: '◆', cls: 'type-go' };
+    case '.exe': case '.msi':  return { icon: '⚙', cls: 'type-exe' };
+    case '.md':                return { icon: '≡', cls: 'type-md' };
+    case '.yml': case '.yaml': return { icon: '◈', cls: 'type-yml' };
+    case '.json':              return { icon: '◈', cls: 'type-json' };
+    case '.js':  case '.ts':   return { icon: '◆', cls: 'type-json' };
+    case '.css':               return { icon: '◈', cls: 'type-yml' };
+    case '.html':              return { icon: '◈', cls: 'type-go' };
+    default:                   return { icon: '·', cls: 'type-other' };
   }
 }
 
@@ -211,9 +241,10 @@ async function refreshFiles() {
     if (f.IsDir) {
       item.title = 'Double-clic pour naviguer';
       item.ondblclick = () => {
-        document.getElementById('commandInput').value = `cd ${f.Name}`;
+        const input = document.getElementById('commandInput');
+        input.value = `cd ${f.Name}`;
         updateGhost(`cd ${f.Name}`);
-        document.getElementById('commandInput').focus();
+        input.focus();
       };
     }
 
@@ -227,7 +258,7 @@ async function refreshFiles() {
 async function runCommand(input) {
   if (!input) return;
 
-  updateGhost('');
+  await updateGhost('');
   const path = document.getElementById('segPath').textContent;
   addLine(`${path}  ${input}`, 'out-cmd');
 
@@ -247,8 +278,11 @@ async function runCommand(input) {
 
   if (input.trim() === 'alias') {
     const aliases = await window.go.main.App.GetAliases();
-    if (!Object.keys(aliases).length) addLine('  Aucun alias.', 'out-muted');
-    else Object.entries(aliases).forEach(([k, v]) => addLine(`  ${k}  →  ${v}`, 'out-muted'));
+    if (!Object.keys(aliases).length) {
+      addLine('  Aucun alias.', 'out-muted');
+    } else {
+      Object.entries(aliases).forEach(([k, v]) => addLine(`  ${k}  →  ${v}`, 'out-muted'));
+    }
     updateStatus(true);
     return;
   }
@@ -297,7 +331,7 @@ async function runCommand(input) {
   await updateGitBranch();
 }
 
-// ── Suggestion ────────────────────────────────────────────────
+// ── Suggestion intelligente ───────────────────────────────────
 function addSuggestion(suggestion, originalInput) {
   const output = document.getElementById('output');
   const div = document.createElement('div');
@@ -319,8 +353,10 @@ async function acceptSuggestion(suggestion, originalInput) {
   await runCommand(parts.join(' '));
 }
 
-// ── Clavier ───────────────────────────────────────────────────
-document.getElementById('commandInput').addEventListener('input', e => updateGhost(e.target.value));
+// ── Gestion clavier ───────────────────────────────────────────
+document.getElementById('commandInput').addEventListener('input', async (e) => {
+  await updateGhost(e.target.value);
+});
 
 document.getElementById('commandInput').addEventListener('keydown', async (e) => {
   const input = document.getElementById('commandInput');
@@ -328,42 +364,74 @@ document.getElementById('commandInput').addEventListener('keydown', async (e) =>
   if (e.ctrlKey && e.key === 'c') {
     const sel = window.getSelection().toString();
     if (sel) { e.preventDefault(); await navigator.clipboard.writeText(sel); return; }
-    input.value = ''; updateGhost(''); return;
+    input.value = '';
+    await updateGhost('');
+    return;
   }
+
   if (e.ctrlKey && e.key === 'v') {
     e.preventDefault();
     const text = await navigator.clipboard.readText();
     const pos = input.selectionStart;
     input.value = input.value.slice(0, pos) + text + input.value.slice(input.selectionEnd);
     input.selectionStart = input.selectionEnd = pos + text.length;
-    updateGhost(input.value); return;
+    await updateGhost(input.value);
+    return;
   }
+
   if (e.ctrlKey && e.key === 'a') { e.preventDefault(); input.select(); return; }
   if (e.ctrlKey && e.key === 't') { e.preventDefault(); createTab(); return; }
-  if (e.ctrlKey && e.key === 'w') { e.preventDefault(); if (activeTab) closeTab(new Event('click'), activeTab.id); return; }
+  if (e.ctrlKey && e.key === 'w') {
+    e.preventDefault();
+    if (activeTab) closeTab(new Event('click'), activeTab.id);
+    return;
+  }
 
-  if ((e.key === 'ArrowRight' || e.key === 'Tab') && ghostSuggestion && input.selectionStart === input.value.length) {
-    e.preventDefault(); input.value = ghostSuggestion; updateGhost(''); return;
+  // → ou Tab → accepte le ghost text (chemin ou commande)
+  if ((e.key === 'ArrowRight' || e.key === 'Tab') && ghostSuggestion) {
+    if (input.selectionStart === input.value.length) {
+      e.preventDefault();
+      input.value = ghostSuggestion;
+      await updateGhost('');
+      return;
+    }
   }
 
   if (e.key === 'Enter') {
-    const cmd = input.value.trim(); input.value = ''; updateGhost('');
+    const cmd = input.value.trim();
+    input.value = '';
+    await updateGhost('');
     await runCommand(cmd);
+
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
-    if (historyIndex > 0) { historyIndex--; input.value = history[historyIndex]; updateGhost(input.value); }
+    if (historyIndex > 0) {
+      historyIndex--;
+      input.value = history[historyIndex];
+      await updateGhost(input.value);
+    }
+
   } else if (e.key === 'ArrowDown') {
     e.preventDefault();
-    if (historyIndex < history.length - 1) { historyIndex++; input.value = history[historyIndex]; updateGhost(input.value); }
-    else { historyIndex = history.length; input.value = ''; updateGhost(''); }
+    if (historyIndex < history.length - 1) {
+      historyIndex++;
+      input.value = history[historyIndex];
+      await updateGhost(input.value);
+    } else {
+      historyIndex = history.length;
+      input.value = '';
+      await updateGhost('');
+    }
   }
 });
 
-document.addEventListener('click', () => document.getElementById('commandInput').focus());
+document.addEventListener('click', () => {
+  document.getElementById('commandInput').focus();
+});
 
-// ── Bienvenue sobre ───────────────────────────────────────────
+// ── Message de bienvenue ──────────────────────────────────────
 async function showWelcome() {
-  addLine('Leyo Shell  1.4', 'out-welcome');
+  addLine('Leyo Shell  1.5', 'out-welcome');
   addLine('Ctrl+T nouvelle session  ·  Ctrl+W fermer  ·  Tab complétion', 'out-muted');
   addLine('', 'out-normal');
 
