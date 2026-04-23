@@ -106,7 +106,7 @@ function updateStatus(ok) {
   }
 }
 
-// ── Ghost text + autocomplétion chemins ───────────────────────
+// ── Ghost text + autocomplétion chemins multi-niveaux ─────────
 const knownCommands = [
   'ls','rm','cp','mv','cat','clear','pwd','mkdir','touch','cd',
   'dir','del','copy','move','type','cls','echo','find','help',
@@ -120,21 +120,35 @@ async function completePathSuggestion(input) {
   if (!input) return '';
 
   const cdMatch = input.match(/^(cd\s+)(.*)$/i);
-  if (cdMatch) {
-    const prefix  = cdMatch[1]; // "cd "
-    const partial = cdMatch[2]; // début du chemin tapé
+  if (!cdMatch) return '';
 
-    const files = await window.go.main.App.ListFiles();
-    const dirs = files.filter(f => f.IsDir);
+  const prefix  = cdMatch[1]; // "cd "
+  const partial = cdMatch[2]; // ex: "Users\vi" ou "vi"
 
-    const match = dirs.find(d =>
-      d.Name.toLowerCase().startsWith(partial.toLowerCase()) &&
-      d.Name.toLowerCase() !== partial.toLowerCase()
-    );
+  // Sépare le dernier segment du reste du chemin
+  const lastSep = Math.max(partial.lastIndexOf('\\'), partial.lastIndexOf('/'));
 
-    if (match) return prefix + match.Name;
+  let dirPrefix  = '';      // ex: "Users\"
+  let toComplete = partial; // ex: "vi"
+
+  if (lastSep !== -1) {
+    dirPrefix  = partial.slice(0, lastSep + 1);
+    toComplete = partial.slice(lastSep + 1);
   }
 
+  // Si rien à compléter sur le dernier segment, on sort
+  if (!toComplete) return '';
+
+  // Liste les fichiers dans le dossier correspondant au préfixe
+  const files = await window.go.main.App.ListFilesAt(dirPrefix || '.');
+  const dirs  = files.filter(f => f.IsDir);
+
+  const match = dirs.find(d =>
+    d.Name.toLowerCase().startsWith(toComplete.toLowerCase()) &&
+    d.Name.toLowerCase() !== toComplete.toLowerCase()
+  );
+
+  if (match) return prefix + dirPrefix + match.Name;
   return '';
 }
 
@@ -150,7 +164,7 @@ function findGhostSuggestion(input) {
 async function updateGhost(input) {
   const ghost = document.getElementById('ghostText');
 
-  // Priorité 1 — autocomplétion de chemin (cd + Tab)
+  // Priorité 1 — autocomplétion de chemin multi-niveaux
   let suggestion = await completePathSuggestion(input);
 
   // Priorité 2 — ghost text sur commandes connues
@@ -217,8 +231,8 @@ function getFileIcon(f) {
 
 async function refreshFiles() {
   const files = await window.go.main.App.ListFiles() || [];
-  const list = document.getElementById('fileList');
-  const path = await window.go.main.App.GetCurrentPath();
+  const list  = document.getElementById('fileList');
+  const path  = await window.go.main.App.GetCurrentPath();
 
   document.getElementById('sidebarPath').textContent =
     path.length > 28 ? '...' + path.slice(-25) : path;
@@ -289,7 +303,7 @@ async function runCommand(input) {
 
   if (input.trim().startsWith('alias ')) {
     const raw = input.trim().slice(6);
-    const eq = raw.indexOf('=');
+    const eq  = raw.indexOf('=');
     if (eq !== -1) {
       const name = raw.slice(0, eq).trim();
       const cmd  = raw.slice(eq + 1).replace(/"/g, '').trim();
@@ -372,7 +386,7 @@ document.getElementById('commandInput').addEventListener('keydown', async (e) =>
   if (e.ctrlKey && e.key === 'v') {
     e.preventDefault();
     const text = await navigator.clipboard.readText();
-    const pos = input.selectionStart;
+    const pos  = input.selectionStart;
     input.value = input.value.slice(0, pos) + text + input.value.slice(input.selectionEnd);
     input.selectionStart = input.selectionEnd = pos + text.length;
     await updateGhost(input.value);
@@ -387,7 +401,7 @@ document.getElementById('commandInput').addEventListener('keydown', async (e) =>
     return;
   }
 
-  // → ou Tab → accepte le ghost text (chemin ou commande)
+  // → ou Tab → accepte la complétion (chemin ou commande)
   if ((e.key === 'ArrowRight' || e.key === 'Tab') && ghostSuggestion) {
     if (input.selectionStart === input.value.length) {
       e.preventDefault();

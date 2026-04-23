@@ -160,3 +160,23 @@ func (a *App) SaveAlias(name, command string) string {
 func (a *App) DeleteAlias(name string) {
 	shell.DeleteAlias(name)
 }
+func (a *App) ListFilesAt(path string) []FileEntry {
+	current, _ := os.Getwd()
+	absPath := filepath.Clean(filepath.Join(current, path))
+	entries, err := os.ReadDir(absPath)
+	if err != nil {
+		return []FileEntry{}
+	}
+	var files []FileEntry
+	for _, e := range entries {
+		if e.IsDir() {
+			files = append(files, FileEntry{Name: e.Name(), IsDir: true, Ext: ""})
+		}
+	}
+	for _, e := range entries {
+		if !e.IsDir() {
+			files = append(files, FileEntry{Name: e.Name(), IsDir: false, Ext: filepath.Ext(e.Name())})
+		}
+	}
+	return files
+}
