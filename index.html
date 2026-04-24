@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Leyo Shell — Shell moderne pour Windows</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
@@ -45,43 +45,7 @@
         Voir le code source
       </a>
     </div>
-
-    <!-- Terminal mockup -->
-    <div class="terminal-mockup">
-      <div class="mockup-header">
-        <div class="mockup-dots">
-          <span class="dot red"></span>
-          <span class="dot yellow"></span>
-          <span class="dot green"></span>
-        </div>
-        <span class="mockup-title">Leyo Shell 1.5</span>
-      </div>
-      <div class="mockup-body">
-        <div class="mockup-line">
-          <span class="m-user">[VinX]</span>
-          <span class="m-path">C:\Projects\leyo</span>
-          <span class="m-arrow"> › </span>
-          <span class="m-cmd">ls</span>
-        </div>
-        <div class="mockup-output">app.go  main.go  frontend/  shell/  build/</div>
-        <div class="mockup-line">
-          <span class="m-user">[VinX]</span>
-          <span class="m-path">C:\Projects\leyo</span>
-          <span class="m-arrow"> › </span>
-          <span class="m-cmd">gti status</span>
-        </div>
-        <div class="mockup-suggestion">
-          💡 Vouliez-vous dire <span class="m-suggest">git</span>
-          <span class="m-btn">Exécuter</span>
-        </div>
-        <div class="mockup-line">
-          <span class="m-user">[VinX]</span>
-          <span class="m-path">C:\Projects\leyo</span>
-          <span class="m-arrow"> › </span>
-          <span class="m-cmd">cd fro<span class="m-ghost">ntend</span></span>
-        </div>
-      </div>
-    </div>
+    <p class="hero-platform">Disponible pour Windows 10 / 11</p>
   </section>
 
   <!-- ── FEATURES ── -->
@@ -90,46 +54,71 @@
     <p class="section-sub">Tout ce qui manquait à cmd.exe et PowerShell</p>
 
     <div class="features-grid">
+
       <div class="feature-card">
-        <div class="feature-icon">⌨️</div>
+        <div class="feature-icon-wrap" style="--ic: rgba(91,200,232,0.12); --ic-border: rgba(91,200,232,0.2);">
+          <span>⌨️</span>
+        </div>
         <h3>Syntaxe Unix</h3>
         <p>Tape <code>ls</code>, <code>rm</code>, <code>mkdir</code>, <code>cp</code> — Leyo traduit automatiquement vers Windows.</p>
       </div>
+
       <div class="feature-card">
-        <div class="feature-icon">💡</div>
+        <div class="feature-icon-wrap" style="--ic: rgba(204,68,170,0.12); --ic-border: rgba(204,68,170,0.2);">
+          <span>💡</span>
+        </div>
         <h3>Correction intelligente</h3>
         <p>Algorithme de Levenshtein. Leyo détecte tes fautes de frappe et propose la bonne commande.</p>
       </div>
+
       <div class="feature-card">
-        <div class="feature-icon">✨</div>
+        <div class="feature-icon-wrap" style="--ic: rgba(136,85,238,0.12); --ic-border: rgba(136,85,238,0.2);">
+          <span>✨</span>
+        </div>
         <h3>Ghost text</h3>
         <p>Autocomplétion en texte grisé basée sur ton historique. Valide avec <code>→</code> ou <code>Tab</code>.</p>
       </div>
+
       <div class="feature-card">
-        <div class="feature-icon">📁</div>
+        <div class="feature-icon-wrap" style="--ic: rgba(91,200,232,0.12); --ic-border: rgba(91,200,232,0.2);">
+          <span>📁</span>
+        </div>
         <h3>Dual-pane</h3>
         <p>Sidebar fichiers interactive mise à jour en temps réel. Glisse-dépose vers le prompt.</p>
       </div>
+
       <div class="feature-card">
-        <div class="feature-icon">🗂️</div>
+        <div class="feature-icon-wrap" style="--ic: rgba(85,119,221,0.12); --ic-border: rgba(85,119,221,0.2);">
+          <span>🗂️</span>
+        </div>
         <h3>Onglets</h3>
         <p>Plusieurs sessions simultanées. <code>Ctrl+T</code> pour ouvrir, <code>Ctrl+W</code> pour fermer.</p>
       </div>
+
       <div class="feature-card">
-        <div class="feature-icon">⎇</div>
+        <div class="feature-icon-wrap" style="--ic: rgba(204,68,170,0.12); --ic-border: rgba(204,68,170,0.2);">
+          <span>⎇</span>
+        </div>
         <h3>Git intégré</h3>
         <p>La branche Git courante s'affiche dans le prompt. Toujours au courant de ton contexte.</p>
       </div>
+
       <div class="feature-card">
-        <div class="feature-icon">🎨</div>
+        <div class="feature-icon-wrap" style="--ic: rgba(136,85,238,0.12); --ic-border: rgba(136,85,238,0.2);">
+          <span>🎨</span>
+        </div>
         <h3>Interface native</h3>
         <p>Vraie fenêtre Windows avec effet Acrylic, palette low-poly inspirée du logo, prompt Powerline.</p>
       </div>
+
       <div class="feature-card">
-        <div class="feature-icon">⚡</div>
+        <div class="feature-icon-wrap" style="--ic: rgba(91,200,232,0.12); --ic-border: rgba(91,200,232,0.2);">
+          <span>⚡</span>
+        </div>
         <h3>Alias persistants</h3>
         <p>Crée tes propres raccourcis sauvegardés entre les sessions. <code>alias ll="ls -la"</code></p>
       </div>
+
     </div>
   </section>
 
@@ -139,6 +128,7 @@
     <p class="section-sub">Deux minutes pour avoir Leyo sur ton Windows</p>
 
     <div class="install-cards">
+
       <div class="install-card featured">
         <div class="install-badge">Recommandé</div>
         <div class="install-icon">📦</div>
@@ -147,7 +137,9 @@
         <a href="https://github.com/HaitoDann/Leyo/releases" class="btn-primary" target="_blank">
           Télécharger LeyoSetup.exe
         </a>
+        <span class="platform-note">Windows 10 / 11 — 64 bit</span>
       </div>
+
       <div class="install-card">
         <div class="install-icon">🗂️</div>
         <h3>Portable</h3>
@@ -155,7 +147,9 @@
         <a href="https://github.com/HaitoDann/Leyo/releases" class="btn-secondary" target="_blank">
           Télécharger Leyo.exe
         </a>
+        <span class="platform-note">Windows 10 / 11 — 64 bit</span>
       </div>
+
     </div>
 
     <p class="install-note">
