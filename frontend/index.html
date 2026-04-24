@@ -28,14 +28,25 @@
         <div class="sidebar-title">Explorer</div>
         <div class="sidebar-path" id="sidebarPath"></div>
         <div class="file-list" id="fileList"></div>
+
+        <!-- Prévisualisation fichier -->
+        <div class="preview-panel" id="previewPanel" style="display:none;">
+          <div class="preview-header">
+            <span class="preview-filename" id="previewFilename"></span>
+            <div class="preview-meta">
+              <span id="previewSize"></span>
+              <span id="previewLines"></span>
+            </div>
+            <button class="preview-close" id="previewClose">✕</button>
+          </div>
+          <div class="preview-body" id="previewBody"></div>
+        </div>
       </div>
 
-      <!-- Zone terminaux (simple ou split) -->
       <div class="terminals-area" id="terminalsArea">
 
         <!-- Pane 1 -->
         <div class="pane" id="pane1">
-          <!-- Barre de recherche Ctrl+F -->
           <div class="search-bar" id="searchBar1" style="display:none;">
             <span class="search-icon">🔍</span>
             <input type="text" id="searchInput1" placeholder="Rechercher dans l'output..." autocomplete="off"/>
@@ -75,10 +86,9 @@
           </div>
         </div>
 
-        <!-- Séparateur split -->
         <div class="split-divider" id="splitDivider" style="display:none;"></div>
 
-        <!-- Pane 2 (split view) -->
+        <!-- Pane 2 -->
         <div class="pane" id="pane2" style="display:none;">
           <div class="search-bar" id="searchBar2" style="display:none;">
             <span class="search-icon">🔍</span>

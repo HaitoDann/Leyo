@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -131,7 +132,91 @@ func (a *App) ListFiles() []FileEntry {
 	return files
 }
 
-// Retourne la branche Git courante (ou "" si pas un repo Git)
+func (a *App) ListFilesAt(path string) []FileEntry {
+	current, _ := os.Getwd()
+	absPath := filepath.Clean(filepath.Join(current, path))
+	entries, err := os.ReadDir(absPath)
+	if err != nil {
+		return []FileEntry{}
+	}
+	var files []FileEntry
+	for _, e := range entries {
+		if e.IsDir() {
+			files = append(files, FileEntry{Name: e.Name(), IsDir: true, Ext: ""})
+		}
+	}
+	for _, e := range entries {
+		if !e.IsDir() {
+			files = append(files, FileEntry{Name: e.Name(), IsDir: false, Ext: filepath.Ext(e.Name())})
+		}
+	}
+	return files
+}
+
+// Lit le contenu d'un fichier pour la prévisualisation
+func (a *App) ReadFilePreview(name string) map[string]string {
+	dir, _ := os.Getwd()
+	fullPath := filepath.Join(dir, name)
+
+	info, err := os.Stat(fullPath)
+	if err != nil {
+		return map[string]string{"error": "Fichier introuvable", "content": "", "size": "", "lines": ""}
+	}
+
+	// Taille lisible
+	size := formatSize(info.Size())
+
+	// Extensions binaires — pas de lecture du contenu
+	ext := strings.ToLower(filepath.Ext(name))
+	binaryExts := map[string]bool{
+		".exe": true, ".dll": true, ".bin": true, ".zip": true,
+		".rar": true, ".7z": true, ".tar": true, ".gz": true,
+		".png": true, ".jpg": true, ".jpeg": true, ".gif": true,
+		".ico": true, ".pdf": true, ".mp3": true, ".mp4": true,
+	}
+
+	if binaryExts[ext] {
+		return map[string]string{
+			"content": "",
+			"binary":  "true",
+			"size":    size,
+			"lines":   "—",
+		}
+	}
+
+	// Limite à 50 Ko pour la prévisualisation
+	const maxBytes = 50 * 1024
+	data, err := os.ReadFile(fullPath)
+	if err != nil {
+		return map[string]string{"error": "Lecture impossible", "content": "", "size": size, "lines": ""}
+	}
+
+	content := string(data)
+	if len(data) > maxBytes {
+		content = string(data[:maxBytes]) + "\n\n… (fichier tronqué)"
+	}
+
+	lines := strings.Count(content, "\n") + 1
+
+	return map[string]string{
+		"content": content,
+		"binary":  "false",
+		"size":    size,
+		"lines":   fmt.Sprintf("%d", lines),
+	}
+}
+
+func formatSize(bytes int64) string {
+	switch {
+	case bytes < 1024:
+		return fmt.Sprintf("%d B", bytes)
+	case bytes < 1024*1024:
+		return fmt.Sprintf("%.1f KB", float64(bytes)/1024)
+	default:
+		return fmt.Sprintf("%.1f MB", float64(bytes)/(1024*1024))
+	}
+}
+
 func (a *App) GetGitBranch() string {
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
 	cmd.Dir, _ = os.Getwd()
@@ -159,24 +244,4 @@ func (a *App) SaveAlias(name, command string) string {
 
 func (a *App) DeleteAlias(name string) {
 	shell.DeleteAlias(name)
-}
-func (a *App) ListFilesAt(path string) []FileEntry {
-	current, _ := os.Getwd()
-	absPath := filepath.Clean(filepath.Join(current, path))
-	entries, err := os.ReadDir(absPath)
-	if err != nil {
-		return []FileEntry{}
-	}
-	var files []FileEntry
-	for _, e := range entries {
-		if e.IsDir() {
-			files = append(files, FileEntry{Name: e.Name(), IsDir: true, Ext: ""})
-		}
-	}
-	for _, e := range entries {
-		if !e.IsDir() {
-			files = append(files, FileEntry{Name: e.Name(), IsDir: false, Ext: filepath.Ext(e.Name())})
-		}
-	}
-	return files
 }

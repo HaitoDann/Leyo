@@ -82,7 +82,6 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Bouton split */
 .split-btn {
   background: transparent;
   border: 1px solid var(--border);
@@ -171,7 +170,7 @@ body {
   margin-bottom: 6px;
 }
 
-.file-list { flex: 1; overflow-y: auto; padding: 4px 0; }
+.file-list { flex: 1; overflow-y: auto; padding: 4px 0; min-height: 0; }
 
 .file-item {
   display: flex;
@@ -188,6 +187,7 @@ body {
 }
 
 .file-item:hover { background: rgba(136,85,238,0.07); color: var(--text-dim); }
+.file-item.preview-active { background: rgba(91,200,232,0.08); color: var(--cyan); }
 
 .file-item .icon { font-size: 11px; flex-shrink: 0; width: 20px; text-align: center; display: inline-block; }
 .file-item .fname { overflow: hidden; text-overflow: ellipsis; }
@@ -203,12 +203,95 @@ body {
 .type-sys   { color: var(--text-mute); }
 .type-other { color: var(--text-mute); }
 
-/* ── TERMINALS AREA ───────────────────────────── */
-.terminals-area {
-  flex: 1;
+/* ── PREVIEW PANEL ────────────────────────────── */
+.preview-panel {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
   display: flex;
-  overflow: hidden;
+  flex-direction: column;
+  max-height: 45%;
+  background: rgba(8,8,16,0.6);
 }
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: rgba(136,85,238,0.05);
+}
+
+.preview-filename {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--cyan);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preview-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 9.5px;
+  color: var(--text-mute);
+  flex-shrink: 0;
+}
+
+.preview-close {
+  background: transparent;
+  border: none;
+  color: var(--text-mute);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 2px 4px;
+  transition: color 0.1s;
+  flex-shrink: 0;
+}
+
+.preview-close:hover { color: var(--error); }
+
+.preview-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 14px;
+  font-size: 11px;
+  line-height: 1.75;
+  color: var(--text-dim);
+  white-space: pre-wrap;
+  word-break: break-all;
+  user-select: text;
+  font-weight: 300;
+}
+
+/* Message fichier binaire */
+.preview-binary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 80px;
+  gap: 6px;
+  color: var(--text-mute);
+  font-size: 11px;
+}
+
+.preview-binary .binary-icon { font-size: 22px; opacity: 0.5; }
+
+/* Coloration légère selon extension */
+.preview-body.lang-go    { color: #9AEAEA; }
+.preview-body.lang-json  { color: #DDA844; }
+.preview-body.lang-md    { color: #BBCC66; }
+.preview-body.lang-yml   { color: #DDAA44; }
+.preview-body.lang-html  { color: #88BBFF; }
+.preview-body.lang-css   { color: #CC88FF; }
+.preview-body.lang-js    { color: #FFDD88; }
+
+/* ── TERMINALS AREA ───────────────────────────── */
+.terminals-area { flex: 1; display: flex; overflow: hidden; }
 
 /* ── PANE ─────────────────────────────────────── */
 .pane {
@@ -221,10 +304,7 @@ body {
   min-width: 0;
 }
 
-/* Pane actif en split — légère mise en valeur */
-.pane.active-pane {
-  background: rgba(136,85,238,0.02);
-}
+.pane.active-pane { background: rgba(136,85,238,0.02); }
 
 /* ── SPLIT DIVIDER ────────────────────────────── */
 .split-divider {
@@ -264,13 +344,7 @@ body {
   user-select: text;
 }
 
-.search-count {
-  font-size: 10px;
-  color: var(--text-mute);
-  white-space: nowrap;
-  min-width: 50px;
-  text-align: right;
-}
+.search-count { font-size: 10px; color: var(--text-mute); white-space: nowrap; min-width: 50px; text-align: right; }
 
 .search-nav {
   background: transparent;
@@ -300,26 +374,11 @@ body {
 
 .search-close:hover { color: var(--error); }
 
-/* Texte surligné dans l'output */
-.search-highlight {
-  background: rgba(221,170,51,0.3);
-  color: var(--warning);
-  border-radius: 2px;
-}
-
-.search-highlight.current {
-  background: rgba(221,170,51,0.6);
-  color: #fff;
-}
+.search-highlight { background: rgba(221,170,51,0.3); color: var(--warning); border-radius: 2px; }
+.search-highlight.current { background: rgba(221,170,51,0.6); color: #fff; }
 
 /* ── OUTPUT ───────────────────────────────────── */
-.output {
-  flex: 1;
-  overflow-y: auto;
-  padding-bottom: 12px;
-  line-height: 1.9;
-  user-select: text;
-}
+.output { flex: 1; overflow-y: auto; padding-bottom: 12px; line-height: 1.9; user-select: text; }
 
 .out-normal  { color: var(--text); white-space: pre-wrap; word-break: break-all; font-weight: 300; }
 .out-error   { color: var(--error); }
@@ -341,21 +400,11 @@ body {
 
 .prompt-segments { display: flex; align-items: center; flex-shrink: 0; }
 
-.seg {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  font-size: 12px;
-  height: 28px;
-  white-space: nowrap;
-}
-
+.seg { display: flex; align-items: center; gap: 6px; padding: 4px 12px; font-size: 12px; height: 28px; white-space: nowrap; }
 .seg-icon { font-size: 11px; opacity: 0.8; }
 .seg-user  { background: var(--seg-user); color: var(--cyan); font-weight: 500; border-radius: 4px 0 0 4px; }
 .seg-path  { background: var(--seg-path); color: var(--text-dim); font-size: 11.5px; }
 .seg-git   { background: var(--seg-git); color: var(--magenta); font-size: 11px; }
-
 .seg-status { background: var(--seg-ok); color: var(--success); padding: 4px 10px; border-radius: 0 4px 4px 0; }
 .seg-status.fail { background: var(--seg-fail); color: var(--error); }
 
@@ -370,19 +419,10 @@ body {
 .input-wrapper { flex: 1; position: relative; display: flex; align-items: center; padding-left: 12px; }
 
 .commandInput {
-  position: relative;
-  z-index: 2;
-  flex: 1;
-  width: 100%;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--text);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 400;
-  caret-color: var(--cyan);
-  user-select: text;
+  position: relative; z-index: 2; flex: 1; width: 100%;
+  background: transparent; border: none; outline: none;
+  color: var(--text); font-family: inherit; font-size: 13px;
+  font-weight: 400; caret-color: var(--cyan); user-select: text;
   animation: cursorGlow 2s ease-in-out infinite;
 }
 
@@ -392,16 +432,10 @@ body {
 }
 
 .ghost-text {
-  position: absolute;
-  left: 12px; top: 0; bottom: 0;
-  display: flex;
-  align-items: center;
-  pointer-events: none;
-  z-index: 1;
-  font-family: inherit;
-  font-size: 13px;
-  white-space: pre;
-  color: transparent;
+  position: absolute; left: 12px; top: 0; bottom: 0;
+  display: flex; align-items: center;
+  pointer-events: none; z-index: 1;
+  font-family: inherit; font-size: 13px; white-space: pre; color: transparent;
 }
 
 .ghost-text::after { content: attr(data-ghost); color: var(--text-mute); opacity: 0.6; }
@@ -413,35 +447,25 @@ body {
 
 /* ── SUGGESTION ───────────────────────────────── */
 .out-suggestion {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 5px 10px;
-  margin: 3px 0;
+  display: flex; align-items: center; gap: 10px;
+  padding: 5px 10px; margin: 3px 0;
   background: rgba(136,85,238,0.06);
   border-left: 2px solid rgba(136,85,238,0.4);
   border-radius: 0 4px 4px 0;
-  flex-wrap: wrap;
-  color: var(--text-dim);
-  font-size: 11.5px;
+  flex-wrap: wrap; color: var(--text-dim); font-size: 11.5px;
 }
 
 .suggestion-word { color: var(--magenta); font-weight: 500; }
 
 .suggestion-btn {
-  background: rgba(136,85,238,0.2);
-  color: var(--cyan);
+  background: rgba(136,85,238,0.2); color: var(--cyan);
   border: 1px solid rgba(136,85,238,0.3);
-  padding: 2px 10px;
-  border-radius: 3px;
-  font-family: inherit;
-  font-size: 10.5px;
-  cursor: pointer;
-  transition: all 0.15s;
+  padding: 2px 10px; border-radius: 3px;
+  font-family: inherit; font-size: 10.5px;
+  cursor: pointer; transition: all 0.15s;
 }
 
 .suggestion-btn:hover { background: rgba(136,85,238,0.35); border-color: var(--violet); }
-
 .suggestion-btn.dismiss { background: transparent; border-color: var(--text-mute); color: var(--text-mute); }
 .suggestion-btn.dismiss:hover { border-color: var(--error); color: var(--error); }
 
@@ -449,5 +473,4 @@ body {
 .file-item.dragging { opacity: 0.4; background: rgba(136,85,238,0.12); }
 .file-item[draggable="true"] { cursor: grab; }
 .file-item[draggable="true"]:active { cursor: grabbing; }
-
 .prompt-bar.drop-active { background: rgba(91,200,232,0.04); border-top-color: rgba(91,200,232,0.2); }
