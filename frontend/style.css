@@ -1,30 +1,25 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
   --bg:        rgba(8, 8, 14, 0.85);
   --bg2:       rgba(11, 11, 20, 0.90);
   --bg3:       rgba(14, 14, 24, 0.95);
-
   --cyan:      #5BC8E8;
   --blue:      #5577DD;
   --violet:    #8855EE;
   --magenta:   #CC44AA;
   --rose:      #EE4488;
-
   --seg-user:  #1A1A35;
   --seg-path:  #12122A;
   --seg-git:   #0F1F2A;
   --seg-ok:    #0A2018;
   --seg-fail:  #2A0A10;
-
   --text:      #D8D8E8;
-  --text-dim:  #8888AA;
-  --text-mute: #606080;   /* ← relevé de 30% à 50% pour lisibilité */
-
+  --text-dim:  #9999BB;
+  --text-mute: #606080;
   --success:   #44CC88;
   --error:     #EE4455;
   --warning:   #DDAA33;
-
   --border:    rgba(255, 255, 255, 0.05);
 }
 
@@ -57,9 +52,7 @@ body {
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg,
-    var(--cyan), var(--blue), var(--violet), var(--magenta)
-  );
+  background: linear-gradient(90deg, var(--cyan), var(--blue), var(--violet), var(--magenta));
   opacity: 0.7;
 }
 
@@ -78,10 +71,9 @@ body {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
-/* ← Horloge plus visible */
 .header-time {
   font-size: 12px;
   font-weight: 500;
@@ -90,22 +82,34 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* ── ONGLETS ──────────────────────────────────── */
-.tabs {
+/* Bouton split */
+.split-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-mute);
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 9px;
+  letter-spacing: 2px;
+  transition: all 0.15s;
   display: flex;
   align-items: center;
-  gap: 4px;
-  flex: 1;
-  overflow: hidden;
 }
 
-/* ← border-radius plus généreux + padding plus aéré */
+.split-btn:hover { color: var(--cyan); border-color: rgba(91,200,232,0.3); }
+.split-btn.active { color: var(--cyan); border-color: rgba(91,200,232,0.4); background: rgba(91,200,232,0.06); }
+
+/* ── ONGLETS ──────────────────────────────────── */
+.tabs { display: flex; align-items: center; gap: 2px; flex: 1; overflow: hidden; }
+
 .tab {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 4px 16px;
-  border-radius: 6px;       /* ← était 4px */
+  border-radius: 6px;
   font-size: 11px;
   cursor: pointer;
   background: transparent;
@@ -117,21 +121,8 @@ body {
 }
 
 .tab:hover { color: var(--text-dim); }
-
-.tab.active {
-  background: rgba(136, 85, 238, 0.12);
-  color: var(--cyan);
-  border-color: rgba(136, 85, 238, 0.25);
-}
-
-.tab-close {
-  font-size: 10px;
-  color: var(--text-mute);
-  cursor: pointer;
-  padding: 0 2px;
-  transition: color 0.1s;
-}
-
+.tab.active { background: rgba(136,85,238,0.12); color: var(--cyan); border-color: rgba(136,85,238,0.25); }
+.tab-close { font-size: 10px; color: var(--text-mute); cursor: pointer; padding: 0 2px; transition: color 0.1s; }
 .tab-close:hover { color: var(--error); }
 
 .tab-add {
@@ -139,7 +130,7 @@ body {
   border: 1px solid var(--border);
   color: var(--text-mute);
   width: 22px; height: 22px;
-  border-radius: 6px;       /* ← harmonisé avec les onglets */
+  border-radius: 6px;
   cursor: pointer;
   font-size: 15px;
   display: flex;
@@ -150,13 +141,10 @@ body {
   line-height: 1;
 }
 
-.tab-add:hover { color: var(--cyan); border-color: rgba(91, 200, 232, 0.3); }
+.tab-add:hover { color: var(--cyan); border-color: rgba(91,200,232,0.3); }
 
 /* ── LAYOUT ───────────────────────────────────── */
-.main {
-  display: flex;
-  height: calc(100vh - 42px);
-}
+.main { display: flex; height: calc(100vh - 42px); }
 
 /* ── SIDEBAR ──────────────────────────────────── */
 .sidebar {
@@ -167,24 +155,15 @@ body {
   flex-direction: column;
   overflow: hidden;
   position: relative;
-  /* ← bordure subtile 5% blanc au lieu d'une couleur vive */
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 1px solid rgba(255,255,255,0.05);
 }
 
-/* ← Plus de padding en haut pour laisser respirer */
-.sidebar-title {
-  padding: 14px 16px 6px;   /* ← était 10px */
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--text-mute);
-  text-transform: uppercase;
-}
+.sidebar-title { padding: 14px 16px 6px; font-size: 9px; letter-spacing: 2px; color: var(--text-mute); text-transform: uppercase; }
 
-/* ← Chemin moins saturé */
 .sidebar-path {
   padding: 0 16px 10px;
   font-size: 10px;
-  color: var(--text-mute);   /* ← était var(--violet) trop vif */
+  color: var(--text-mute);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -192,70 +171,148 @@ body {
   margin-bottom: 6px;
 }
 
-.file-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 4px 0;
-}
+.file-list { flex: 1; overflow-y: auto; padding: 4px 0; }
 
-/* ← Alignement strict sur colonne verticale */
 .file-item {
   display: flex;
   align-items: center;
-  gap: 0;                    /* ← géré par les largeurs fixes */
-  padding: 5px 0 5px 14px;  /* ← padding gauche fixe pour tous */
+  gap: 0;
+  padding: 5px 0 5px 14px;
   cursor: pointer;
   transition: background 0.1s;
   font-size: 11.5px;
   white-space: nowrap;
   overflow: hidden;
-  /* ← gris bleuté discret pour inactif */
   color: #6A6A8A;
   line-height: 1.6;
 }
 
-.file-item:hover {
-  background: rgba(136, 85, 238, 0.07);
-  color: var(--text-dim);
-}
+.file-item:hover { background: rgba(136,85,238,0.07); color: var(--text-dim); }
 
-/* ← Icône dans un bloc de largeur fixe — alignement parfait */
-.file-item .icon {
-  font-size: 11px;
-  flex-shrink: 0;
-  width: 20px;               /* ← largeur fixe pour tous les icônes */
-  text-align: center;
-  display: inline-block;
-}
-
-.file-item .fname {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Couleurs — réservées aux types, pas à l'état inactif */
-.type-dir     { color: var(--cyan); }
-.type-go      { color: #5BC8CC; }
-.type-exe     { color: var(--success); }
-.type-md      { color: #AABB44; }
-.type-yml     { color: var(--warning); }
-.type-json    { color: #DD8833; }
-.type-git     { color: var(--magenta); opacity: 0.8; }
-.type-sys     { color: var(--text-mute); }
-.type-other   { color: var(--text-mute); }
-
-/* Au hover → les noms de dossiers reprennent leur couleur */
+.file-item .icon { font-size: 11px; flex-shrink: 0; width: 20px; text-align: center; display: inline-block; }
+.file-item .fname { overflow: hidden; text-overflow: ellipsis; }
 .file-item:hover .fname.type-dir { color: var(--cyan); }
 
-/* ── TERMINAL ─────────────────────────────────── */
-.terminal {
+.type-dir   { color: var(--cyan); }
+.type-go    { color: #5BC8CC; }
+.type-exe   { color: var(--success); }
+.type-md    { color: #AABB44; }
+.type-yml   { color: var(--warning); }
+.type-json  { color: #DD8833; }
+.type-git   { color: var(--magenta); opacity: 0.8; }
+.type-sys   { color: var(--text-mute); }
+.type-other { color: var(--text-mute); }
+
+/* ── TERMINALS AREA ───────────────────────────── */
+.terminals-area {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── PANE ─────────────────────────────────────── */
+.pane {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   padding: 16px 24px 0;
+  position: relative;
+  min-width: 0;
 }
 
+/* Pane actif en split — légère mise en valeur */
+.pane.active-pane {
+  background: rgba(136,85,238,0.02);
+}
+
+/* ── SPLIT DIVIDER ────────────────────────────── */
+.split-divider {
+  width: 1px;
+  background: rgba(255,255,255,0.06);
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.split-divider:hover { background: rgba(136,85,238,0.4); }
+
+/* ── SEARCH BAR ───────────────────────────────── */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg3);
+  border: 1px solid rgba(136,85,238,0.25);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.search-icon { font-size: 11px; color: var(--text-mute); }
+
+.search-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  caret-color: var(--cyan);
+  user-select: text;
+}
+
+.search-count {
+  font-size: 10px;
+  color: var(--text-mute);
+  white-space: nowrap;
+  min-width: 50px;
+  text-align: right;
+}
+
+.search-nav {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-mute);
+  width: 20px; height: 20px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s;
+}
+
+.search-nav:hover { color: var(--cyan); border-color: rgba(91,200,232,0.3); }
+
+.search-close {
+  background: transparent;
+  border: none;
+  color: var(--text-mute);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 4px;
+  transition: color 0.1s;
+}
+
+.search-close:hover { color: var(--error); }
+
+/* Texte surligné dans l'output */
+.search-highlight {
+  background: rgba(221,170,51,0.3);
+  color: var(--warning);
+  border-radius: 2px;
+}
+
+.search-highlight.current {
+  background: rgba(221,170,51,0.6);
+  color: #fff;
+}
+
+/* ── OUTPUT ───────────────────────────────────── */
 .output {
   flex: 1;
   overflow-y: auto;
@@ -282,11 +339,7 @@ body {
   margin-top: 4px;
 }
 
-.prompt-segments {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
+.prompt-segments { display: flex; align-items: center; flex-shrink: 0; }
 
 .seg {
   display: flex;
@@ -299,65 +352,24 @@ body {
 }
 
 .seg-icon { font-size: 11px; opacity: 0.8; }
+.seg-user  { background: var(--seg-user); color: var(--cyan); font-weight: 500; border-radius: 4px 0 0 4px; }
+.seg-path  { background: var(--seg-path); color: var(--text-dim); font-size: 11.5px; }
+.seg-git   { background: var(--seg-git); color: var(--magenta); font-size: 11px; }
 
-.seg-user {
-  background: var(--seg-user);
-  color: var(--cyan);
-  font-weight: 500;
-  border-radius: 4px 0 0 4px;
-}
+.seg-status { background: var(--seg-ok); color: var(--success); padding: 4px 10px; border-radius: 0 4px 4px 0; }
+.seg-status.fail { background: var(--seg-fail); color: var(--error); }
 
-.seg-path {
-  background: var(--seg-path);
-  color: var(--text-dim);
-  font-size: 11.5px;
-}
-
-.seg-git {
-  background: var(--seg-git);
-  color: var(--magenta);
-  font-size: 11px;
-}
-
-.seg-status {
-  background: var(--seg-ok);
-  color: var(--success);
-  padding: 4px 10px;
-  border-radius: 0 4px 4px 0;
-}
-
-.seg-status.fail {
-  background: var(--seg-fail);
-  color: var(--error);
-}
-
-/* ← Flèches Powerline collées — pas d'espace entre segments */
-.seg-arrow {
-  width: 0; height: 0;
-  border-top: 14px solid transparent;
-  border-bottom: 14px solid transparent;
-  flex-shrink: 0;
-  margin: 0;                 /* ← supprime tout margin résiduel */
-  display: block;
-}
-
+.seg-arrow { width: 0; height: 0; border-top: 14px solid transparent; border-bottom: 14px solid transparent; flex-shrink: 0; margin: 0; display: block; }
 .seg-arrow-user   { border-left: 8px solid var(--seg-user); }
 .seg-arrow-path   { border-left: 8px solid var(--seg-path); }
 .seg-arrow-git    { border-left: 8px solid var(--seg-git); }
 .seg-arrow-status { border-left: 8px solid var(--seg-ok); }
-
 .seg-arrow-status.fail { border-left-color: var(--seg-fail); }
 
-/* ── INPUT & GHOST TEXT ───────────────────────── */
-.input-wrapper {
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
-  padding-left: 12px;
-}
+/* ── INPUT & GHOST ────────────────────────────── */
+.input-wrapper { flex: 1; position: relative; display: flex; align-items: center; padding-left: 12px; }
 
-#commandInput {
+.commandInput {
   position: relative;
   z-index: 2;
   flex: 1;
@@ -392,16 +404,12 @@ body {
   color: transparent;
 }
 
-.ghost-text::after {
-  content: attr(data-ghost);
-  color: var(--text-mute);
-  opacity: 0.6;
-}
+.ghost-text::after { content: attr(data-ghost); color: var(--text-mute); opacity: 0.6; }
 
 /* ── SCROLLBAR ────────────────────────────────── */
-::-webkit-scrollbar       { width: 2px; }
+::-webkit-scrollbar { width: 2px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(136, 85, 238, 0.3); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(136,85,238,0.3); border-radius: 2px; }
 
 /* ── SUGGESTION ───────────────────────────────── */
 .out-suggestion {
@@ -410,8 +418,8 @@ body {
   gap: 10px;
   padding: 5px 10px;
   margin: 3px 0;
-  background: rgba(136, 85, 238, 0.06);
-  border-left: 2px solid rgba(136, 85, 238, 0.4);
+  background: rgba(136,85,238,0.06);
+  border-left: 2px solid rgba(136,85,238,0.4);
   border-radius: 0 4px 4px 0;
   flex-wrap: wrap;
   color: var(--text-dim);
@@ -421,9 +429,9 @@ body {
 .suggestion-word { color: var(--magenta); font-weight: 500; }
 
 .suggestion-btn {
-  background: rgba(136, 85, 238, 0.2);
+  background: rgba(136,85,238,0.2);
   color: var(--cyan);
-  border: 1px solid rgba(136, 85, 238, 0.3);
+  border: 1px solid rgba(136,85,238,0.3);
   padding: 2px 10px;
   border-radius: 3px;
   font-family: inherit;
@@ -432,40 +440,14 @@ body {
   transition: all 0.15s;
 }
 
-.suggestion-btn:hover { background: rgba(136, 85, 238, 0.35); border-color: var(--violet); }
+.suggestion-btn:hover { background: rgba(136,85,238,0.35); border-color: var(--violet); }
 
-.suggestion-btn.dismiss {
-  background: transparent;
-  border-color: var(--text-mute);
-  color: var(--text-mute);
-}
-
+.suggestion-btn.dismiss { background: transparent; border-color: var(--text-mute); color: var(--text-mute); }
 .suggestion-btn.dismiss:hover { border-color: var(--error); color: var(--error); }
 
 /* ── DRAG & DROP ──────────────────────────────── */
+.file-item.dragging { opacity: 0.4; background: rgba(136,85,238,0.12); }
+.file-item[draggable="true"] { cursor: grab; }
+.file-item[draggable="true"]:active { cursor: grabbing; }
 
-/* Fichier en cours de glissement */
-.file-item.dragging {
-  opacity: 0.4;
-  background: rgba(136, 85, 238, 0.12);
-}
-
-/* Curseur drag sur les items */
-.file-item[draggable="true"] {
-  cursor: grab;
-}
-
-.file-item[draggable="true"]:active {
-  cursor: grabbing;
-}
-
-/* Zone de drop active sur le prompt */
-.prompt-bar.drop-active {
-  background: rgba(91, 200, 232, 0.06);
-  border-top-color: rgba(91, 200, 232, 0.3);
-  transition: all 0.15s;
-}
-
-.prompt-bar.drop-active .input-wrapper {
-  border-left: 2px solid var(--cyan);
-}
+.prompt-bar.drop-active { background: rgba(91,200,232,0.04); border-top-color: rgba(91,200,232,0.2); }

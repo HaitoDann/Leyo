@@ -4,7 +4,6 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Leyo Shell</title>
-  <!-- JetBrains Mono depuis Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css"/>
@@ -13,11 +12,12 @@
   <div class="app">
 
     <div class="header">
-      <img src="assets/logo.png" height="28" width="28" style="object-fit: contain; opacity: 0.9;"/>
+      <img src="assets/logo.png" height="28" width="28" style="object-fit:contain;opacity:0.9;"/>
       <span class="logo">LEYO</span>
       <div class="tabs" id="tabs"></div>
       <button class="tab-add" id="tabAdd" title="Nouvel onglet (Ctrl+T)">+</button>
       <div class="header-right">
+        <button class="split-btn" id="splitBtn" title="Split view (Ctrl+D)">⬛⬛</button>
         <span class="header-time" id="headerTime"></span>
       </div>
     </div>
@@ -30,38 +30,92 @@
         <div class="file-list" id="fileList"></div>
       </div>
 
-      <div class="terminal">
-        <div class="output" id="output"></div>
+      <!-- Zone terminaux (simple ou split) -->
+      <div class="terminals-area" id="terminalsArea">
 
-        <!-- Prompt Powerline -->
-        <div class="prompt-bar">
-          <div class="prompt-segments">
-            <div class="seg seg-user">
-              <span class="seg-icon">❯</span>
-              <span id="segUser">VinX</span>
-            </div>
-            <div class="seg-arrow seg-arrow-user"></div>
-
-            <div class="seg seg-path">
-              <span id="segPath">C:\</span>
-            </div>
-            <div class="seg-arrow seg-arrow-path"></div>
-
-            <div class="seg seg-git" id="segGitBlock" style="display:none">
-              <span class="seg-icon">⎇</span>
-              <span id="segGit"></span>
-            </div>
-            <div class="seg-arrow seg-arrow-git" id="segGitArrow" style="display:none"></div>
-
-            <div class="seg seg-status" id="segStatusBlock">
-              <span id="segStatus">●</span>
-            </div>
-            <div class="seg-arrow seg-arrow-status"></div>
+        <!-- Pane 1 -->
+        <div class="pane" id="pane1">
+          <!-- Barre de recherche Ctrl+F -->
+          <div class="search-bar" id="searchBar1" style="display:none;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput1" placeholder="Rechercher dans l'output..." autocomplete="off"/>
+            <span class="search-count" id="searchCount1"></span>
+            <button class="search-nav" id="searchPrev1">↑</button>
+            <button class="search-nav" id="searchNext1">↓</button>
+            <button class="search-close" id="searchClose1">✕</button>
           </div>
 
-          <div class="input-wrapper">
-            <input type="text" id="commandInput" autocomplete="off" spellcheck="false"/>
-            <span class="ghost-text" id="ghostText"></span>
+          <div class="output" id="output1"></div>
+
+          <div class="prompt-bar" id="promptBar1">
+            <div class="prompt-segments">
+              <div class="seg seg-user">
+                <span class="seg-icon">❯</span>
+                <span class="seg-user-label">VinX</span>
+              </div>
+              <div class="seg-arrow seg-arrow-user"></div>
+              <div class="seg seg-path">
+                <span class="seg-path-label" id="segPath1">C:\</span>
+              </div>
+              <div class="seg-arrow seg-arrow-path"></div>
+              <div class="seg seg-git" id="segGitBlock1" style="display:none">
+                <span class="seg-icon">⎇</span>
+                <span id="segGit1"></span>
+              </div>
+              <div class="seg-arrow seg-arrow-git" id="segGitArrow1" style="display:none"></div>
+              <div class="seg seg-status" id="segStatusBlock1">
+                <span id="segStatus1">●</span>
+              </div>
+              <div class="seg-arrow seg-arrow-status"></div>
+            </div>
+            <div class="input-wrapper">
+              <input type="text" class="commandInput" id="commandInput1" autocomplete="off" spellcheck="false"/>
+              <span class="ghost-text" id="ghostText1"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Séparateur split -->
+        <div class="split-divider" id="splitDivider" style="display:none;"></div>
+
+        <!-- Pane 2 (split view) -->
+        <div class="pane" id="pane2" style="display:none;">
+          <div class="search-bar" id="searchBar2" style="display:none;">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput2" placeholder="Rechercher dans l'output..." autocomplete="off"/>
+            <span class="search-count" id="searchCount2"></span>
+            <button class="search-nav" id="searchPrev2">↑</button>
+            <button class="search-nav" id="searchNext2">↓</button>
+            <button class="search-close" id="searchClose2">✕</button>
+          </div>
+
+          <div class="output" id="output2"></div>
+
+          <div class="prompt-bar" id="promptBar2">
+            <div class="prompt-segments">
+              <div class="seg seg-user">
+                <span class="seg-icon">❯</span>
+                <span class="seg-user-label">VinX</span>
+              </div>
+              <div class="seg-arrow seg-arrow-user"></div>
+              <div class="seg seg-path">
+                <span class="seg-path-label" id="segPath2">C:\</span>
+              </div>
+              <div class="seg-arrow seg-arrow-path"></div>
+              <div class="seg seg-git" id="segGitBlock2" style="display:none">
+                <span class="seg-icon">⎇</span>
+                <span id="segGit2"></span>
+              </div>
+              <div class="seg-arrow seg-arrow-git" id="segGitArrow2" style="display:none"></div>
+              <div class="seg seg-status" id="segStatusBlock2">
+                <span id="segStatus2">●</span>
+              </div>
+              <div class="seg-arrow seg-arrow-status"></div>
+            </div>
+            <div class="input-wrapper">
+              <input type="text" class="commandInput" id="commandInput2" autocomplete="off" spellcheck="false"/>
+              <span class="ghost-text" id="ghostText2"></span>
+            </div>
           </div>
         </div>
 
