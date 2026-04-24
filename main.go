@@ -33,8 +33,8 @@ func main() {
 		OnStartup:        app.startup,
 		Bind:             []interface{}{app},
 		Windows: &windows.Options{
-			WebviewIsTransparent:              true,
-			WindowIsTranslucent:               true,
+			WebviewIsTransparent:              false,
+			WindowIsTranslucent:               false,
 			BackdropType:                      windows.Acrylic,
 			DisableWindowIcon:                 false,
 			IsZoomControlEnabled:              false,
