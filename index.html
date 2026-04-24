@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Leyo Shell — Shell moderne pour Windows</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <!-- ── HEADER ── -->
+  <header>
+    <nav>
+      <div class="nav-logo">
+        <img src="logo.png" width="28" height="28" alt="Leyo"/>
+        <span>LEYO</span>
+      </div>
+      <div class="nav-links">
+        <a href="#features">Fonctionnalités</a>
+        <a href="#install">Installation</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="https://github.com/HaitoDann/Leyo" target="_blank">GitHub</a>
+      </div>
+      <a href="https://github.com/HaitoDann/Leyo/releases" class="btn-download" target="_blank">
+        Télécharger 1.5
+      </a>
+    </nav>
+  </header>
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="hero-badge">Version 1.5 disponible</div>
+    <h1>Le shell Windows<br/><span class="gradient-text">que tu mérites</span></h1>
+    <p class="hero-sub">
+      Syntaxe Unix native. Interface élégante. Correction intelligente.<br/>
+      Leyo transforme ton terminal en vrai outil de productivité.
+    </p>
+    <div class="hero-actions">
+      <a href="https://github.com/HaitoDann/Leyo/releases" class="btn-primary" target="_blank">
+        ↓ Télécharger gratuitement
+      </a>
+      <a href="https://github.com/HaitoDann/Leyo" class="btn-secondary" target="_blank">
+        Voir le code source
+      </a>
+    </div>
+
+    <!-- Terminal mockup -->
+    <div class="terminal-mockup">
+      <div class="mockup-header">
+        <div class="mockup-dots">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <span class="mockup-title">Leyo Shell 1.5</span>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-line">
+          <span class="m-user">[VinX]</span>
+          <span class="m-path">C:\Projects\leyo</span>
+          <span class="m-arrow"> › </span>
+          <span class="m-cmd">ls</span>
+        </div>
+        <div class="mockup-output">app.go  main.go  frontend/  shell/  build/</div>
+        <div class="mockup-line">
+          <span class="m-user">[VinX]</span>
+          <span class="m-path">C:\Projects\leyo</span>
+          <span class="m-arrow"> › </span>
+          <span class="m-cmd">gti status</span>
+        </div>
+        <div class="mockup-suggestion">
+          💡 Vouliez-vous dire <span class="m-suggest">git</span>
+          <span class="m-btn">Exécuter</span>
+        </div>
+        <div class="mockup-line">
+          <span class="m-user">[VinX]</span>
+          <span class="m-path">C:\Projects\leyo</span>
+          <span class="m-arrow"> › </span>
+          <span class="m-cmd">cd fro<span class="m-ghost">ntend</span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FEATURES ── -->
+  <section class="features" id="features">
+    <h2>Pourquoi Leyo ?</h2>
+    <p class="section-sub">Tout ce qui manquait à cmd.exe et PowerShell</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⌨️</div>
+        <h3>Syntaxe Unix</h3>
+        <p>Tape <code>ls</code>, <code>rm</code>, <code>mkdir</code>, <code>cp</code> — Leyo traduit automatiquement vers Windows.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💡</div>
+        <h3>Correction intelligente</h3>
+        <p>Algorithme de Levenshtein. Leyo détecte tes fautes de frappe et propose la bonne commande.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">✨</div>
+        <h3>Ghost text</h3>
+        <p>Autocomplétion en texte grisé basée sur ton historique. Valide avec <code>→</code> ou <code>Tab</code>.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📁</div>
+        <h3>Dual-pane</h3>
+        <p>Sidebar fichiers interactive mise à jour en temps réel. Glisse-dépose vers le prompt.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🗂️</div>
+        <h3>Onglets</h3>
+        <p>Plusieurs sessions simultanées. <code>Ctrl+T</code> pour ouvrir, <code>Ctrl+W</code> pour fermer.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⎇</div>
+        <h3>Git intégré</h3>
+        <p>La branche Git courante s'affiche dans le prompt. Toujours au courant de ton contexte.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>Interface native</h3>
+        <p>Vraie fenêtre Windows avec effet Acrylic, palette low-poly inspirée du logo, prompt Powerline.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Alias persistants</h3>
+        <p>Crée tes propres raccourcis sauvegardés entre les sessions. <code>alias ll="ls -la"</code></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── INSTALL ── -->
+  <section class="install" id="install">
+    <h2>Installation</h2>
+    <p class="section-sub">Deux minutes pour avoir Leyo sur ton Windows</p>
+
+    <div class="install-cards">
+      <div class="install-card featured">
+        <div class="install-badge">Recommandé</div>
+        <div class="install-icon">📦</div>
+        <h3>Installeur</h3>
+        <p>Lance <code>LeyoSetup.exe</code> — Leyo s'installe avec un raccourci Bureau et une entrée dans le Menu Démarrer.</p>
+        <a href="https://github.com/HaitoDann/Leyo/releases" class="btn-primary" target="_blank">
+          Télécharger LeyoSetup.exe
+        </a>
+      </div>
+      <div class="install-card">
+        <div class="install-icon">🗂️</div>
+        <h3>Portable</h3>
+        <p>Télécharge <code>Leyo.exe</code>, place-le dans <code>C:\Leyo\</code> et lance-le directement.</p>
+        <a href="https://github.com/HaitoDann/Leyo/releases" class="btn-secondary" target="_blank">
+          Télécharger Leyo.exe
+        </a>
+      </div>
+    </div>
+
+    <p class="install-note">
+      ⚠️ Windows peut afficher un avertissement de sécurité — clique sur
+      <strong>"Informations complémentaires" → "Exécuter quand même"</strong>
+    </p>
+  </section>
+
+  <!-- ── ROADMAP ── -->
+  <section class="roadmap" id="roadmap">
+    <h2>Roadmap</h2>
+    <p class="section-sub">Leyo grandit à chaque version</p>
+
+    <div class="roadmap-line">
+
+      <div class="roadmap-item done">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-content">
+          <span class="roadmap-version">1.0</span>
+          <h4>Migration Wails</h4>
+          <p>Leyo devient une vraie app desktop Windows</p>
+        </div>
+      </div>
+
+      <div class="roadmap-item done">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-content">
+          <span class="roadmap-version">1.3</span>
+          <h4>Identité visuelle</h4>
+          <p>UI low-poly, palette logo, prompt Powerline</p>
+        </div>
+      </div>
+
+      <div class="roadmap-item done">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-content">
+          <span class="roadmap-version">1.4</span>
+          <h4>Productivité</h4>
+          <p>Onglets, alias, installeur officiel</p>
+        </div>
+      </div>
+
+      <div class="roadmap-item current">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-content">
+          <span class="roadmap-version">1.5 ✦</span>
+          <h4>Fluidité</h4>
+          <p>Complétion multi-niveaux, drag & drop, recherche</p>
+        </div>
+      </div>
+
+      <div class="roadmap-item upcoming">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-content">
+          <span class="roadmap-version">2.0</span>
+          <h4>NEXUS</h4>
+          <p>PTY réel, cross-platform, plugins, IA</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer>
+    <div class="footer-logo">
+      <img src="logo.png" width="22" height="22" alt="Leyo"/>
+      <span>LEYO</span>
+    </div>
+    <p>Fait avec ❤️ par <strong>VinX</strong> — Open source, MIT License</p>
+    <div class="footer-links">
+      <a href="https://github.com/HaitoDann/Leyo" target="_blank">GitHub</a>
+      <a href="https://github.com/HaitoDann/Leyo/releases" target="_blank">Releases</a>
+      <a href="https://github.com/HaitoDann/Leyo/issues" target="_blank">Signaler un bug</a>
+    </div>
+  </footer>
+
+</body>
+</html>

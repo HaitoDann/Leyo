@@ -1,8 +1,0 @@
-{
-  "name": "leyo-frontend",
-  "version": "1.0.0",
-  "scripts": {
-    "build": "echo done",
-    "dev": "echo done"
-  }
-}
