@@ -13,14 +13,14 @@ let currentThemeName = 'PRISM';
 
 function applyTheme(theme) {
   const root = document.documentElement.style;
-  root.setProperty('--cyan',    theme.Cyan);
-  root.setProperty('--blue',    theme.Blue);
-  root.setProperty('--violet',  theme.Violet);
-  root.setProperty('--magenta', theme.Magenta);
-  root.setProperty('--bg',      theme.Bg);
-  root.setProperty('--bg2',     theme.Bg2);
-  root.setProperty('--text',    theme.Text);
-  currentThemeName = theme.Name;
+  root.setProperty('--cyan',    theme.cyan);
+  root.setProperty('--blue',    theme.blue);
+  root.setProperty('--violet',  theme.violet);
+  root.setProperty('--magenta', theme.magenta);
+  root.setProperty('--bg',      theme.bg);
+  root.setProperty('--bg2',     theme.bg2);
+  root.setProperty('--text',    theme.text);
+  currentThemeName = theme.name;
   renderThemeCards();
 }
 
@@ -36,20 +36,20 @@ function renderThemeGrid(themes) {
   grid.innerHTML = '';
   themes.forEach(t => {
     const card = document.createElement('div');
-    card.className = 'theme-card' + (t.Name === currentThemeName ? ' active' : '');
-    card.dataset.name = t.Name;
+    card.className = 'theme-card' + (t.name === currentThemeName ? ' active' : '');
+    card.dataset.name = t.name;
     card.innerHTML = `
       <div class="theme-card-preview">
-        <div class="theme-swatch" style="background:${t.Cyan}"></div>
-        <div class="theme-swatch" style="background:${t.Blue}"></div>
-        <div class="theme-swatch" style="background:${t.Violet}"></div>
-        <div class="theme-swatch" style="background:${t.Magenta}"></div>
+        <div class="theme-swatch" style="background:${t.cyan}"></div>
+        <div class="theme-swatch" style="background:${t.blue}"></div>
+        <div class="theme-swatch" style="background:${t.violet}"></div>
+        <div class="theme-swatch" style="background:${t.magenta}"></div>
       </div>
-      <div class="theme-card-name">${t.Name}</div>
+      <div class="theme-card-name">${t.name}</div>
     `;
     card.addEventListener('click', async () => {
       applyTheme(t);
-      await window.go.main.App.SetTheme(t.Name);
+      await window.go.main.App.SetTheme(t.name);
       renderThemeCards();
     });
     grid.appendChild(card);
