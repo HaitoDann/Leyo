@@ -3,10 +3,10 @@
   <h1>Leyo Shell</h1>
   <p>Un shell moderne pour Windows — syntaxe Unix, interface élégante</p>
 
-  ![Version](https://img.shields.io/badge/version-1.4.0-7B2FFF)
-  ![Platform](https://img.shields.io/badge/platform-Windows-00C8FF)
+  ![Version](https://img.shields.io/badge/version-1.7-7B2FFF)
+  ![Platform](https://img.shields.io/badge/Windows-00C8FF)
   ![Language](https://img.shields.io/badge/Go-Wails-FF00CC)
-  ![Author](https://img.shields.io/badge/by-VinX-FF3399)
+  ![Author](https://img.shields.io/badge/VinX-FF3399)
 </div>
 
 ---
@@ -98,6 +98,17 @@ alias               → liste tous les alias
 unalias ll          → supprime l'alias
 
 **Installeur** — `LeyoSetup.exe` installe Leyo proprement sur Windows avec raccourci Bureau, entrée dans le Menu Démarrer et désinstalleur intégré dans les paramètres Windows.
+---
+
+### v1.5.0  Complétion multi-niveaux, drag & drop, Ctrl+F, split view
+
+--- 
+
+### v1.6.0  Prévisualisation fichiers (cat + sidebar)
+
+---
+
+### v1.7.0  Thèmes (5 palettes), sidebar redimensionnable
 
 ---
 

@@ -1,5 +1,5 @@
 !define APP_NAME "Leyo Shell"
-!define APP_VERSION "1.4.0"
+!define APP_VERSION "1.7"
 !define APP_PUBLISHER "VinX"
 !define APP_EXE "Leyo.exe"
 !define INSTALL_DIR "$PROGRAMFILES64\Leyo"
