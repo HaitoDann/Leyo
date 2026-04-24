@@ -123,9 +123,7 @@ func (a *App) ListFiles() []FileEntry {
 	for _, e := range entries {
 		if !e.IsDir() {
 			files = append(files, FileEntry{
-				Name:  e.Name(),
-				IsDir: false,
-				Ext:   filepath.Ext(e.Name()),
+				Name: e.Name(), IsDir: false, Ext: filepath.Ext(e.Name()),
 			})
 		}
 	}
@@ -153,7 +151,6 @@ func (a *App) ListFilesAt(path string) []FileEntry {
 	return files
 }
 
-// Lit le contenu d'un fichier pour la prévisualisation
 func (a *App) ReadFilePreview(name string) map[string]string {
 	dir, _ := os.Getwd()
 	fullPath := filepath.Join(dir, name)
@@ -163,10 +160,7 @@ func (a *App) ReadFilePreview(name string) map[string]string {
 		return map[string]string{"error": "Fichier introuvable", "content": "", "size": "", "lines": ""}
 	}
 
-	// Taille lisible
 	size := formatSize(info.Size())
-
-	// Extensions binaires — pas de lecture du contenu
 	ext := strings.ToLower(filepath.Ext(name))
 	binaryExts := map[string]bool{
 		".exe": true, ".dll": true, ".bin": true, ".zip": true,
@@ -176,15 +170,9 @@ func (a *App) ReadFilePreview(name string) map[string]string {
 	}
 
 	if binaryExts[ext] {
-		return map[string]string{
-			"content": "",
-			"binary":  "true",
-			"size":    size,
-			"lines":   "—",
-		}
+		return map[string]string{"content": "", "binary": "true", "size": size, "lines": "—"}
 	}
 
-	// Limite à 50 Ko pour la prévisualisation
 	const maxBytes = 50 * 1024
 	data, err := os.ReadFile(fullPath)
 	if err != nil {
@@ -197,12 +185,9 @@ func (a *App) ReadFilePreview(name string) map[string]string {
 	}
 
 	lines := strings.Count(content, "\n") + 1
-
 	return map[string]string{
-		"content": content,
-		"binary":  "false",
-		"size":    size,
-		"lines":   fmt.Sprintf("%d", lines),
+		"content": content, "binary": "false",
+		"size": size, "lines": fmt.Sprintf("%d", lines),
 	}
 }
 
@@ -231,6 +216,28 @@ func (a *App) GetGitBranch() string {
 	return branch
 }
 
+// ── Thèmes ──────────────────────────────────────────────────
+func (a *App) GetThemes() []shell.Theme {
+	return shell.DefaultThemes
+}
+
+func (a *App) GetCurrentTheme() shell.Theme {
+	return shell.LoadCurrentTheme()
+}
+
+func (a *App) SetTheme(name string) string {
+	for _, t := range shell.DefaultThemes {
+		if t.Name == name {
+			if err := shell.SaveCurrentTheme(t); err != nil {
+				return err.Error()
+			}
+			return ""
+		}
+	}
+	return "Thème introuvable"
+}
+
+// ── Alias ────────────────────────────────────────────────────
 func (a *App) GetAliases() map[string]string {
 	return shell.LoadAliases()
 }

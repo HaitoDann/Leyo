@@ -1,6 +1,5 @@
 // ── État global ───────────────────────────────────────────────
 let history = [];
-let ghostSuggestion = '';
 let splitActive = false;
 let activePaneId = 1;
 
@@ -8,6 +7,108 @@ const paneState = {
   1: { historyIndex: 0, ghostSuggestion: '' },
   2: { historyIndex: 0, ghostSuggestion: '' }
 };
+
+// ── Thèmes ────────────────────────────────────────────────────
+let currentThemeName = 'PRISM';
+
+function applyTheme(theme) {
+  const root = document.documentElement.style;
+  root.setProperty('--cyan',    theme.Cyan);
+  root.setProperty('--blue',    theme.Blue);
+  root.setProperty('--violet',  theme.Violet);
+  root.setProperty('--magenta', theme.Magenta);
+  root.setProperty('--bg',      theme.Bg);
+  root.setProperty('--bg2',     theme.Bg2);
+  root.setProperty('--text',    theme.Text);
+  currentThemeName = theme.Name;
+  renderThemeCards();
+}
+
+async function loadThemes() {
+  const themes = await window.go.main.App.GetThemes();
+  const current = await window.go.main.App.GetCurrentTheme();
+  applyTheme(current);
+  renderThemeGrid(themes);
+}
+
+function renderThemeGrid(themes) {
+  const grid = document.getElementById('themeGrid');
+  grid.innerHTML = '';
+  themes.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'theme-card' + (t.Name === currentThemeName ? ' active' : '');
+    card.dataset.name = t.Name;
+    card.innerHTML = `
+      <div class="theme-card-preview">
+        <div class="theme-swatch" style="background:${t.Cyan}"></div>
+        <div class="theme-swatch" style="background:${t.Blue}"></div>
+        <div class="theme-swatch" style="background:${t.Violet}"></div>
+        <div class="theme-swatch" style="background:${t.Magenta}"></div>
+      </div>
+      <div class="theme-card-name">${t.Name}</div>
+    `;
+    card.addEventListener('click', async () => {
+      applyTheme(t);
+      await window.go.main.App.SetTheme(t.Name);
+      renderThemeCards();
+    });
+    grid.appendChild(card);
+  });
+}
+
+function renderThemeCards() {
+  document.querySelectorAll('.theme-card').forEach(card => {
+    card.classList.toggle('active', card.dataset.name === currentThemeName);
+  });
+}
+
+// Modal thèmes
+document.getElementById('themeBtn').addEventListener('click', () => {
+  document.getElementById('themeModal').style.display = 'flex';
+});
+
+document.getElementById('themeModalClose').addEventListener('click', () => {
+  document.getElementById('themeModal').style.display = 'none';
+});
+
+document.getElementById('themeModal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('themeModal')) {
+    document.getElementById('themeModal').style.display = 'none';
+  }
+});
+
+// ── Resize sidebar ────────────────────────────────────────────
+function initSidebarResize() {
+  const handle  = document.getElementById('sidebarResizeHandle');
+  const sidebar = document.getElementById('sidebar');
+  let isResizing = false;
+  let startX = 0;
+  let startWidth = 0;
+
+  handle.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    startX = e.clientX;
+    startWidth = sidebar.getBoundingClientRect().width;
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const delta    = e.clientX - startX;
+    const newWidth = Math.min(400, Math.max(120, startWidth + delta));
+    sidebar.style.width = newWidth + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!isResizing) return;
+    isResizing = false;
+    handle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+}
 
 // ── Système d'onglets ─────────────────────────────────────────
 let tabs = [];
@@ -44,14 +145,12 @@ async function switchTab(id) {
   }
   activeTab = tabs.find(t => t.id === id);
   if (!activeTab) return;
-
   document.getElementById('output1').innerHTML = activeTab.output;
   document.getElementById('segPath1').textContent = activeTab.path;
   document.getElementById('sidebarPath').textContent = activeTab.path;
   document.getElementById('commandInput1').value = '';
   await updateGhost(1, '');
   renderTabs();
-
   await window.go.main.App.RunCommand(`cd "${activeTab.path}"`);
   await refreshFiles();
   await updateGitBranch(1);
@@ -81,7 +180,7 @@ async function toggleSplit() {
     setActivePane(2);
     const path = await window.go.main.App.GetCurrentPath();
     document.getElementById('segPath2').textContent = path;
-    addLine(2, 'Leyo Shell  1.6', 'out-welcome');
+    addLine(2, 'Leyo Shell  1.7', 'out-welcome');
     addLine(2, 'Ctrl+D pour fermer le split', 'out-muted');
     addLine(2, '', 'out-normal');
     await updateGitBranch(2);
@@ -106,64 +205,39 @@ document.getElementById('pane1').addEventListener('mousedown', () => setActivePa
 document.getElementById('pane2').addEventListener('mousedown', () => setActivePane(2));
 document.getElementById('splitBtn').addEventListener('click', toggleSplit);
 
-// ── Prévisualisation fichier ──────────────────────────────────
+// ── Prévisualisation ──────────────────────────────────────────
 let currentPreviewFile = null;
 
 function langClass(ext) {
-  const map = {
-    '.go': 'lang-go', '.json': 'lang-json', '.md': 'lang-md',
-    '.yml': 'lang-yml', '.yaml': 'lang-yml', '.html': 'lang-html',
-    '.css': 'lang-css', '.js': 'lang-js', '.ts': 'lang-js',
-  };
+  const map = { '.go':'lang-go','.json':'lang-json','.md':'lang-md','.yml':'lang-yml','.yaml':'lang-yml','.html':'lang-html','.css':'lang-css','.js':'lang-js','.ts':'lang-js' };
   return map[ext.toLowerCase()] || '';
 }
 
 async function previewFile(name, ext) {
-  const panel   = document.getElementById('previewPanel');
-  const body    = document.getElementById('previewBody');
-  const fname   = document.getElementById('previewFilename');
-  const size    = document.getElementById('previewSize');
-  const lines   = document.getElementById('previewLines');
-
-  // Toggle : si déjà ouvert pour ce fichier → ferme
-  if (currentPreviewFile === name) {
-    closePreview();
-    return;
-  }
+  const panel = document.getElementById('previewPanel');
+  const body  = document.getElementById('previewBody');
+  if (currentPreviewFile === name) { closePreview(); return; }
 
   currentPreviewFile = name;
-  fname.textContent = name;
+  document.getElementById('previewFilename').textContent = name;
   body.textContent = '…';
   body.className = 'preview-body';
   panel.style.display = 'flex';
 
-  // Met en valeur l'item actif dans la sidebar
-  document.querySelectorAll('.file-item').forEach(el => {
-    el.classList.toggle('preview-active', el.dataset.name === name);
-  });
+  document.querySelectorAll('.file-item').forEach(el =>
+    el.classList.toggle('preview-active', el.dataset.name === name)
+  );
 
   const result = await window.go.main.App.ReadFilePreview(name);
+  document.getElementById('previewSize').textContent = result.size;
 
-  if (result.error) {
-    body.textContent = result.error;
-    size.textContent = '';
-    lines.textContent = '';
-    return;
-  }
-
-  size.textContent = result.size;
+  if (result.error) { body.textContent = result.error; document.getElementById('previewLines').textContent = ''; return; }
 
   if (result.binary === 'true') {
-    lines.textContent = '';
-    body.innerHTML = `
-      <div class="preview-binary">
-        <span class="binary-icon">⚙</span>
-        <span>Fichier binaire — aperçu non disponible</span>
-        <span style="color:var(--text-mute);font-size:10px">${result.size}</span>
-      </div>
-    `;
+    document.getElementById('previewLines').textContent = '';
+    body.innerHTML = `<div class="preview-binary"><span class="binary-icon">⚙</span><span>Fichier binaire</span><span style="font-size:10px;color:var(--text-mute)">${result.size}</span></div>`;
   } else {
-    lines.textContent = `${result.lines} lignes`;
+    document.getElementById('previewLines').textContent = `${result.lines} lignes`;
     body.className = 'preview-body ' + langClass(ext);
     body.textContent = result.content;
   }
@@ -177,18 +251,16 @@ function closePreview() {
 
 document.getElementById('previewClose').addEventListener('click', closePreview);
 
-// ── Recherche Ctrl+F ──────────────────────────────────────────
+// ── Recherche ─────────────────────────────────────────────────
 const searchState = {
   1: { matches: [], current: 0, originalHTML: '' },
   2: { matches: [], current: 0, originalHTML: '' }
 };
 
 function openSearch(paneId) {
-  const bar   = document.getElementById(`searchBar${paneId}`);
-  const input = document.getElementById(`searchInput${paneId}`);
-  bar.style.display = 'flex';
-  input.focus();
-  input.select();
+  const bar = document.getElementById(`searchBar${paneId}`);
+  const inp = document.getElementById(`searchInput${paneId}`);
+  bar.style.display = 'flex'; inp.focus(); inp.select();
 }
 
 function closeSearch(paneId) {
@@ -208,54 +280,29 @@ function doSearch(paneId) {
   const output = document.getElementById(`output${paneId}`);
   const count  = document.getElementById(`searchCount${paneId}`);
 
-  if (searchState[paneId].originalHTML) {
-    output.innerHTML = searchState[paneId].originalHTML;
-  } else {
-    searchState[paneId].originalHTML = output.innerHTML;
-  }
+  if (searchState[paneId].originalHTML) output.innerHTML = searchState[paneId].originalHTML;
+  else searchState[paneId].originalHTML = output.innerHTML;
 
   if (!query) { count.textContent = ''; searchState[paneId].matches = []; return; }
 
-  const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
-  output.innerHTML = output.innerHTML.replace(regex, '<mark class="search-highlight">$1</mark>');
-
-  const marks = output.querySelectorAll('.search-highlight');
-  searchState[paneId].matches = Array.from(marks);
+  output.innerHTML = output.innerHTML.replace(new RegExp(`(${escapeRegex(query)})`, 'gi'), '<mark class="search-highlight">$1</mark>');
+  const marks = Array.from(output.querySelectorAll('.search-highlight'));
+  searchState[paneId].matches = marks;
   searchState[paneId].current = 0;
-
-  if (marks.length > 0) {
-    count.textContent = `1 / ${marks.length}`;
-    highlightCurrent(paneId);
-  } else {
-    count.textContent = '0 résultat';
-  }
+  count.textContent = marks.length ? `1 / ${marks.length}` : '0 résultat';
+  if (marks.length) highlightCurrent(paneId);
 }
 
 function highlightCurrent(paneId) {
-  const state = searchState[paneId];
-  state.matches.forEach((m, i) => m.classList.toggle('current', i === state.current));
-  if (state.matches[state.current]) state.matches[state.current].scrollIntoView({ block: 'center' });
-  document.getElementById(`searchCount${paneId}`).textContent =
-    `${state.current + 1} / ${state.matches.length}`;
-}
-
-function searchNext(paneId) {
   const s = searchState[paneId];
-  if (!s.matches.length) return;
-  s.current = (s.current + 1) % s.matches.length;
-  highlightCurrent(paneId);
+  s.matches.forEach((m, i) => m.classList.toggle('current', i === s.current));
+  if (s.matches[s.current]) s.matches[s.current].scrollIntoView({ block: 'center' });
+  document.getElementById(`searchCount${paneId}`).textContent = `${s.current + 1} / ${s.matches.length}`;
 }
 
-function searchPrev(paneId) {
-  const s = searchState[paneId];
-  if (!s.matches.length) return;
-  s.current = (s.current - 1 + s.matches.length) % s.matches.length;
-  highlightCurrent(paneId);
-}
-
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+function searchNext(paneId) { const s = searchState[paneId]; if (!s.matches.length) return; s.current = (s.current + 1) % s.matches.length; highlightCurrent(paneId); }
+function searchPrev(paneId) { const s = searchState[paneId]; if (!s.matches.length) return; s.current = (s.current - 1 + s.matches.length) % s.matches.length; highlightCurrent(paneId); }
+function escapeRegex(str) { return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
 [1, 2].forEach(id => {
   document.getElementById(`searchInput${id}`).addEventListener('input', () => doSearch(id));
@@ -283,14 +330,8 @@ async function updateGitBranch(paneId) {
   const block  = document.getElementById(`segGitBlock${paneId}`);
   const arrow  = document.getElementById(`segGitArrow${paneId}`);
   const label  = document.getElementById(`segGit${paneId}`);
-  if (branch) {
-    label.textContent = branch;
-    block.style.display = 'flex';
-    arrow.style.display = 'block';
-  } else {
-    block.style.display = 'none';
-    arrow.style.display = 'none';
-  }
+  if (branch) { label.textContent = branch; block.style.display = 'flex'; arrow.style.display = 'block'; }
+  else { block.style.display = 'none'; arrow.style.display = 'none'; }
 }
 
 // ── Statut ────────────────────────────────────────────────────
@@ -298,15 +339,8 @@ function updateStatus(paneId, ok) {
   const seg   = document.getElementById(`segStatusBlock${paneId}`);
   const dot   = document.getElementById(`segStatus${paneId}`);
   const arrow = seg.parentElement.querySelector('.seg-arrow-status');
-  if (ok) {
-    seg.className = 'seg seg-status';
-    dot.textContent = '●';
-    if (arrow) arrow.className = 'seg-arrow seg-arrow-status';
-  } else {
-    seg.className = 'seg seg-status fail';
-    dot.textContent = '✕';
-    if (arrow) arrow.className = 'seg-arrow seg-arrow-status fail';
-  }
+  if (ok) { seg.className = 'seg seg-status'; dot.textContent = '●'; if (arrow) arrow.className = 'seg-arrow seg-arrow-status'; }
+  else    { seg.className = 'seg seg-status fail'; dot.textContent = '✕'; if (arrow) arrow.className = 'seg-arrow seg-arrow-status fail'; }
 }
 
 // ── Ghost text ────────────────────────────────────────────────
@@ -316,18 +350,16 @@ const knownCommands = [
   'git','git add','git commit','git push','git pull','git status',
   'git clone','git checkout','git branch','git log','git diff',
   'go build','go run','go mod','go test','go get',
-  'history','exit','alias','unalias'
+  'history','exit','alias','unalias','theme'
 ];
 
 async function completePathSuggestion(input) {
   if (!input) return '';
-  const cdMatch = input.match(/^(cd\s+)(.*)$/i);
-  if (!cdMatch) return '';
-  const prefix   = cdMatch[1];
-  const partial  = cdMatch[2];
-  const lastSep  = Math.max(partial.lastIndexOf('\\'), partial.lastIndexOf('/'));
-  let dirPrefix  = '';
-  let toComplete = partial;
+  const m = input.match(/^(cd\s+)(.*)$/i);
+  if (!m) return '';
+  const prefix = m[1], partial = m[2];
+  const lastSep = Math.max(partial.lastIndexOf('\\'), partial.lastIndexOf('/'));
+  let dirPrefix = '', toComplete = partial;
   if (lastSep !== -1) { dirPrefix = partial.slice(0, lastSep + 1); toComplete = partial.slice(lastSep + 1); }
   if (!toComplete) return '';
   const files = await window.go.main.App.ListFilesAt(dirPrefix || '.');
@@ -377,6 +409,8 @@ async function init() {
   history = await window.go.main.App.GetHistory() || [];
   paneState[1].historyIndex = history.length;
   paneState[2].historyIndex = history.length;
+  await loadThemes();
+  initSidebarResize();
   createTab();
   document.getElementById('commandInput1').focus();
 }
@@ -385,10 +419,8 @@ async function init() {
 function addLine(paneId, text, cls = 'out-normal') {
   const output = document.getElementById(`output${paneId}`);
   const div = document.createElement('div');
-  div.className = cls;
-  div.textContent = text;
-  output.appendChild(div);
-  output.scrollTop = output.scrollHeight;
+  div.className = cls; div.textContent = text;
+  output.appendChild(div); output.scrollTop = output.scrollHeight;
   searchState[paneId].originalHTML = '';
 }
 
@@ -396,10 +428,10 @@ function addLine(paneId, text, cls = 'out-normal') {
 function getFileIcon(f) {
   if (f.IsDir) {
     const lower = f.Name.toLowerCase();
-    if (lower === '.git')                        return { icon: '⎇', cls: 'type-git' };
-    if (['windows','system32'].includes(lower))  return { icon: '⊞', cls: 'type-sys' };
-    if (lower === 'node_modules')                return { icon: '⬡', cls: 'type-other' };
-    if (lower === '$recycle.bin')                return { icon: '◌', cls: 'type-sys' };
+    if (lower === '.git') return { icon: '⎇', cls: 'type-git' };
+    if (['windows','system32'].includes(lower)) return { icon: '⊞', cls: 'type-sys' };
+    if (lower === 'node_modules') return { icon: '⬡', cls: 'type-other' };
+    if (lower === '$recycle.bin') return { icon: '◌', cls: 'type-sys' };
     return { icon: '▶', cls: 'type-dir' };
   }
   switch ((f.Ext || '').toLowerCase()) {
@@ -439,15 +471,11 @@ async function refreshFiles() {
     nameEl.textContent = f.Name;
 
     item.draggable = true;
-    item.addEventListener('dragstart', (e) => {
-      e.dataTransfer.setData('text/plain', f.Name);
-      e.dataTransfer.effectAllowed = 'copy';
-      item.classList.add('dragging');
-    });
+    item.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', f.Name); e.dataTransfer.effectAllowed = 'copy'; item.classList.add('dragging'); });
     item.addEventListener('dragend', () => item.classList.remove('dragging'));
 
     if (f.IsDir) {
-      item.title = 'Glisse vers le prompt · Double-clic pour naviguer';
+      item.title = 'Glisse · Double-clic pour naviguer';
       item.ondblclick = () => {
         const input = document.getElementById(`commandInput${activePaneId}`);
         input.value = `cd ${f.Name}`;
@@ -455,8 +483,7 @@ async function refreshFiles() {
         input.focus();
       };
     } else {
-      // ← Clic simple → prévisualisation
-      item.title = 'Clic pour prévisualiser · Glisse vers le prompt';
+      item.title = 'Clic pour prévisualiser';
       item.addEventListener('click', () => previewFile(f.Name, f.Ext || ''));
     }
 
@@ -465,7 +492,6 @@ async function refreshFiles() {
     list.appendChild(item);
   });
 
-  // Remet en valeur le fichier en preview s'il est toujours là
   if (currentPreviewFile) {
     const active = list.querySelector(`[data-name="${currentPreviewFile}"]`);
     if (active) active.classList.add('preview-active');
@@ -480,8 +506,7 @@ function initDragDrop() {
     bar.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; bar.classList.add('drop-active'); });
     bar.addEventListener('dragleave', (e) => { if (!bar.contains(e.relatedTarget)) bar.classList.remove('drop-active'); });
     bar.addEventListener('drop', (e) => {
-      e.preventDefault();
-      bar.classList.remove('drop-active');
+      e.preventDefault(); bar.classList.remove('drop-active');
       const name = e.dataTransfer.getData('text/plain');
       if (!name) return;
       const input = document.getElementById(`commandInput${id}`);
@@ -508,22 +533,25 @@ async function runCommand(paneId, input) {
   if (input.trim() === 'clear') {
     document.getElementById(`output${paneId}`).innerHTML = '';
     searchState[paneId].originalHTML = '';
-    updateStatus(paneId, true);
-    return;
+    updateStatus(paneId, true); return;
   }
 
   if (input.trim() === 'history') {
     history.forEach((cmd, i) => addLine(paneId, `  ${i + 1}  ${cmd}`, 'out-muted'));
-    updateStatus(paneId, true);
-    return;
+    updateStatus(paneId, true); return;
+  }
+
+  // Commande theme
+  if (input.trim() === 'theme') {
+    document.getElementById('themeModal').style.display = 'flex';
+    updateStatus(paneId, true); return;
   }
 
   if (input.trim() === 'alias') {
     const aliases = await window.go.main.App.GetAliases();
     if (!Object.keys(aliases).length) addLine(paneId, '  Aucun alias.', 'out-muted');
     else Object.entries(aliases).forEach(([k, v]) => addLine(paneId, `  ${k}  →  ${v}`, 'out-muted'));
-    updateStatus(paneId, true);
-    return;
+    updateStatus(paneId, true); return;
   }
 
   if (input.trim().startsWith('alias ')) {
@@ -546,16 +574,11 @@ async function runCommand(paneId, input) {
     const name = input.trim().slice(8).trim();
     await window.go.main.App.DeleteAlias(name);
     addLine(paneId, `✅ alias supprimé : ${name}`, 'out-success');
-    updateStatus(paneId, true);
-    return;
+    updateStatus(paneId, true); return;
   }
 
-  // cat → ouvre aussi la prévisualisation
   const catMatch = input.trim().match(/^(?:cat|type)\s+(.+)$/i);
-  if (catMatch) {
-    const filename = catMatch[1].trim();
-    await previewFile(filename, '.' + filename.split('.').pop());
-  }
+  if (catMatch) await previewFile(catMatch[1].trim(), '.' + catMatch[1].trim().split('.').pop());
 
   await window.go.main.App.SaveHistory(input);
   history = await window.go.main.App.GetHistory() || [];
@@ -569,10 +592,8 @@ async function runCommand(paneId, input) {
   if (result.output)     addLine(paneId, result.output, 'out-normal');
 
   updateStatus(paneId, !hasError);
-
   const newPath = await window.go.main.App.GetCurrentPath();
   document.getElementById(`segPath${paneId}`).textContent = newPath;
-
   if (paneId === 1) await refreshFiles();
   await updateGitBranch(paneId);
 }
@@ -606,6 +627,7 @@ function setupPane(paneId) {
   input.addEventListener('input', async (e) => await updateGhost(paneId, e.target.value));
 
   input.addEventListener('keydown', async (e) => {
+    if (e.ctrlKey && e.key === 'k') { e.preventDefault(); document.getElementById('themeModal').style.display = 'flex'; return; }
     if (e.ctrlKey && e.key === 'f') { e.preventDefault(); openSearch(paneId); return; }
     if (e.ctrlKey && e.key === 'd') { e.preventDefault(); toggleSplit(); return; }
 
@@ -631,6 +653,10 @@ function setupPane(paneId) {
       e.preventDefault(); input.value = ghost; await updateGhost(paneId, ''); return;
     }
 
+    if (e.key === 'Escape') {
+      document.getElementById('themeModal').style.display = 'none'; return;
+    }
+
     if (e.key === 'Enter') {
       const cmd = input.value.trim(); input.value = ''; await updateGhost(paneId, '');
       await runCommand(paneId, cmd);
@@ -651,8 +677,8 @@ function setupPane(paneId) {
 
 // ── Bienvenue ─────────────────────────────────────────────────
 async function showWelcome() {
-  addLine(1, 'Leyo Shell  1.6', 'out-welcome');
-  addLine(1, 'Ctrl+T session  ·  Ctrl+D split  ·  Ctrl+F recherche  ·  Clic fichier = aperçu', 'out-muted');
+  addLine(1, 'Leyo Shell  1.7', 'out-welcome');
+  addLine(1, 'Ctrl+K thèmes  ·  Ctrl+D split  ·  Ctrl+F recherche  ·  Tab complétion', 'out-muted');
   addLine(1, '', 'out-normal');
 
   const path = await window.go.main.App.GetCurrentPath();

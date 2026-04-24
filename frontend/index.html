@@ -18,18 +18,28 @@
       <button class="tab-add" id="tabAdd" title="Nouvel onglet (Ctrl+T)">+</button>
       <div class="header-right">
         <button class="split-btn" id="splitBtn" title="Split view (Ctrl+D)">⬛⬛</button>
+        <button class="theme-btn" id="themeBtn" title="Thèmes (Ctrl+K)">◈</button>
         <span class="header-time" id="headerTime"></span>
+      </div>
+    </div>
+
+    <!-- Modal thèmes -->
+    <div class="theme-modal" id="themeModal" style="display:none;">
+      <div class="theme-modal-inner">
+        <div class="theme-modal-header">
+          <span>Thèmes</span>
+          <button class="theme-modal-close" id="themeModalClose">✕</button>
+        </div>
+        <div class="theme-grid" id="themeGrid"></div>
       </div>
     </div>
 
     <div class="main">
 
-      <div class="sidebar">
+      <div class="sidebar" id="sidebar">
         <div class="sidebar-title">Explorer</div>
         <div class="sidebar-path" id="sidebarPath"></div>
         <div class="file-list" id="fileList"></div>
-
-        <!-- Prévisualisation fichier -->
         <div class="preview-panel" id="previewPanel" style="display:none;">
           <div class="preview-header">
             <span class="preview-filename" id="previewFilename"></span>
@@ -43,40 +53,30 @@
         </div>
       </div>
 
+      <!-- Handle resize sidebar -->
+      <div class="sidebar-resize-handle" id="sidebarResizeHandle"></div>
+
       <div class="terminals-area" id="terminalsArea">
 
-        <!-- Pane 1 -->
         <div class="pane" id="pane1">
           <div class="search-bar" id="searchBar1" style="display:none;">
             <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput1" placeholder="Rechercher dans l'output..." autocomplete="off"/>
+            <input type="text" id="searchInput1" placeholder="Rechercher..." autocomplete="off"/>
             <span class="search-count" id="searchCount1"></span>
             <button class="search-nav" id="searchPrev1">↑</button>
             <button class="search-nav" id="searchNext1">↓</button>
             <button class="search-close" id="searchClose1">✕</button>
           </div>
-
           <div class="output" id="output1"></div>
-
           <div class="prompt-bar" id="promptBar1">
             <div class="prompt-segments">
-              <div class="seg seg-user">
-                <span class="seg-icon">❯</span>
-                <span class="seg-user-label">VinX</span>
-              </div>
+              <div class="seg seg-user"><span class="seg-icon">❯</span><span class="seg-user-label">VinX</span></div>
               <div class="seg-arrow seg-arrow-user"></div>
-              <div class="seg seg-path">
-                <span class="seg-path-label" id="segPath1">C:\</span>
-              </div>
+              <div class="seg seg-path"><span class="seg-path-label" id="segPath1">C:\</span></div>
               <div class="seg-arrow seg-arrow-path"></div>
-              <div class="seg seg-git" id="segGitBlock1" style="display:none">
-                <span class="seg-icon">⎇</span>
-                <span id="segGit1"></span>
-              </div>
+              <div class="seg seg-git" id="segGitBlock1" style="display:none"><span class="seg-icon">⎇</span><span id="segGit1"></span></div>
               <div class="seg-arrow seg-arrow-git" id="segGitArrow1" style="display:none"></div>
-              <div class="seg seg-status" id="segStatusBlock1">
-                <span id="segStatus1">●</span>
-              </div>
+              <div class="seg seg-status" id="segStatusBlock1"><span id="segStatus1">●</span></div>
               <div class="seg-arrow seg-arrow-status"></div>
             </div>
             <div class="input-wrapper">
@@ -88,38 +88,25 @@
 
         <div class="split-divider" id="splitDivider" style="display:none;"></div>
 
-        <!-- Pane 2 -->
         <div class="pane" id="pane2" style="display:none;">
           <div class="search-bar" id="searchBar2" style="display:none;">
             <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput2" placeholder="Rechercher dans l'output..." autocomplete="off"/>
+            <input type="text" id="searchInput2" placeholder="Rechercher..." autocomplete="off"/>
             <span class="search-count" id="searchCount2"></span>
             <button class="search-nav" id="searchPrev2">↑</button>
             <button class="search-nav" id="searchNext2">↓</button>
             <button class="search-close" id="searchClose2">✕</button>
           </div>
-
           <div class="output" id="output2"></div>
-
           <div class="prompt-bar" id="promptBar2">
             <div class="prompt-segments">
-              <div class="seg seg-user">
-                <span class="seg-icon">❯</span>
-                <span class="seg-user-label">VinX</span>
-              </div>
+              <div class="seg seg-user"><span class="seg-icon">❯</span><span class="seg-user-label">VinX</span></div>
               <div class="seg-arrow seg-arrow-user"></div>
-              <div class="seg seg-path">
-                <span class="seg-path-label" id="segPath2">C:\</span>
-              </div>
+              <div class="seg seg-path"><span class="seg-path-label" id="segPath2">C:\</span></div>
               <div class="seg-arrow seg-arrow-path"></div>
-              <div class="seg seg-git" id="segGitBlock2" style="display:none">
-                <span class="seg-icon">⎇</span>
-                <span id="segGit2"></span>
-              </div>
+              <div class="seg seg-git" id="segGitBlock2" style="display:none"><span class="seg-icon">⎇</span><span id="segGit2"></span></div>
               <div class="seg-arrow seg-arrow-git" id="segGitArrow2" style="display:none"></div>
-              <div class="seg seg-status" id="segStatusBlock2">
-                <span id="segStatus2">●</span>
-              </div>
+              <div class="seg seg-status" id="segStatusBlock2"><span id="segStatus2">●</span></div>
               <div class="seg-arrow seg-arrow-status"></div>
             </div>
             <div class="input-wrapper">
