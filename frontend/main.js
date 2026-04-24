@@ -92,9 +92,9 @@ async function updateGitBranch() {
 // ── Statut dernière commande ──────────────────────────────────
 function updateStatus(ok) {
   lastCommandOk = ok;
-  const seg = document.getElementById('segStatusBlock');
+  const seg   = document.getElementById('segStatusBlock');
   const arrow = document.querySelector('.seg-arrow-status');
-  const dot = document.getElementById('segStatus');
+  const dot   = document.getElementById('segStatus');
   if (ok) {
     seg.className = 'seg seg-status';
     dot.textContent = '●';
@@ -122,24 +122,21 @@ async function completePathSuggestion(input) {
   const cdMatch = input.match(/^(cd\s+)(.*)$/i);
   if (!cdMatch) return '';
 
-  const prefix  = cdMatch[1]; // "cd "
-  const partial = cdMatch[2]; // ex: "Users\vi" ou "vi"
+  const prefix  = cdMatch[1];
+  const partial = cdMatch[2];
 
-  // Sépare le dernier segment du reste du chemin
   const lastSep = Math.max(partial.lastIndexOf('\\'), partial.lastIndexOf('/'));
 
-  let dirPrefix  = '';      // ex: "Users\"
-  let toComplete = partial; // ex: "vi"
+  let dirPrefix  = '';
+  let toComplete = partial;
 
   if (lastSep !== -1) {
     dirPrefix  = partial.slice(0, lastSep + 1);
     toComplete = partial.slice(lastSep + 1);
   }
 
-  // Si rien à compléter sur le dernier segment, on sort
   if (!toComplete) return '';
 
-  // Liste les fichiers dans le dossier correspondant au préfixe
   const files = await window.go.main.App.ListFilesAt(dirPrefix || '.');
   const dirs  = files.filter(f => f.IsDir);
 
@@ -164,10 +161,7 @@ function findGhostSuggestion(input) {
 async function updateGhost(input) {
   const ghost = document.getElementById('ghostText');
 
-  // Priorité 1 — autocomplétion de chemin multi-niveaux
   let suggestion = await completePathSuggestion(input);
-
-  // Priorité 2 — ghost text sur commandes connues
   if (!suggestion) suggestion = findGhostSuggestion(input);
 
   ghostSuggestion = suggestion;
@@ -252,19 +246,72 @@ async function refreshFiles() {
     nameEl.className = `fname ${f.IsDir ? 'type-dir' : ''}`;
     nameEl.textContent = f.Name;
 
+    // ── Drag & drop ──────────────────────────────
+    item.draggable = true;
+
+    item.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', f.Name);
+      e.dataTransfer.effectAllowed = 'copy';
+      item.classList.add('dragging');
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+    });
+    // ─────────────────────────────────────────────
+
     if (f.IsDir) {
-      item.title = 'Double-clic pour naviguer';
+      item.title = 'Glisse vers le prompt · Double-clic pour naviguer';
       item.ondblclick = () => {
         const input = document.getElementById('commandInput');
         input.value = `cd ${f.Name}`;
         updateGhost(`cd ${f.Name}`);
         input.focus();
       };
+    } else {
+      item.title = 'Glisse vers le prompt';
     }
 
     item.appendChild(iconEl);
     item.appendChild(nameEl);
     list.appendChild(item);
+  });
+}
+
+// ── Zone de drop sur le prompt ────────────────────────────────
+function initDragDrop() {
+  const promptBar = document.querySelector('.prompt-bar');
+
+  promptBar.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    promptBar.classList.add('drop-active');
+  });
+
+  promptBar.addEventListener('dragleave', (e) => {
+    // Évite le flickering quand on survole un enfant
+    if (!promptBar.contains(e.relatedTarget)) {
+      promptBar.classList.remove('drop-active');
+    }
+  });
+
+  promptBar.addEventListener('drop', (e) => {
+    e.preventDefault();
+    promptBar.classList.remove('drop-active');
+
+    const name = e.dataTransfer.getData('text/plain');
+    if (!name) return;
+
+    const input  = document.getElementById('commandInput');
+    const pos    = input.selectionStart;
+    const before = input.value.slice(0, pos);
+    const after  = input.value.slice(pos);
+
+    // Insère le nom à la position du curseur
+    input.value = before + name + after;
+    input.selectionStart = input.selectionEnd = pos + name.length;
+    updateGhost(input.value);
+    input.focus();
   });
 }
 
@@ -401,7 +448,6 @@ document.getElementById('commandInput').addEventListener('keydown', async (e) =>
     return;
   }
 
-  // → ou Tab → accepte la complétion (chemin ou commande)
   if ((e.key === 'ArrowRight' || e.key === 'Tab') && ghostSuggestion) {
     if (input.selectionStart === input.value.length) {
       e.preventDefault();
@@ -446,7 +492,7 @@ document.addEventListener('click', () => {
 // ── Message de bienvenue ──────────────────────────────────────
 async function showWelcome() {
   addLine('Leyo Shell  1.5', 'out-welcome');
-  addLine('Ctrl+T nouvelle session  ·  Ctrl+W fermer  ·  Tab complétion', 'out-muted');
+  addLine('Ctrl+T nouvelle session  ·  Ctrl+W fermer  ·  Tab complétion  ·  Glisser-déposer', 'out-muted');
   addLine('', 'out-normal');
 
   const path = await window.go.main.App.GetCurrentPath();
@@ -455,6 +501,9 @@ async function showWelcome() {
   await refreshFiles();
   await updateGitBranch();
   updateStatus(true);
+
+  // Init drag & drop après que le DOM est prêt
+  initDragDrop();
 }
 
 init().then(() => showWelcome());

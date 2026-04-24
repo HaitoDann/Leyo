@@ -441,3 +441,31 @@ body {
 }
 
 .suggestion-btn.dismiss:hover { border-color: var(--error); color: var(--error); }
+
+/* ── DRAG & DROP ──────────────────────────────── */
+
+/* Fichier en cours de glissement */
+.file-item.dragging {
+  opacity: 0.4;
+  background: rgba(136, 85, 238, 0.12);
+}
+
+/* Curseur drag sur les items */
+.file-item[draggable="true"] {
+  cursor: grab;
+}
+
+.file-item[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* Zone de drop active sur le prompt */
+.prompt-bar.drop-active {
+  background: rgba(91, 200, 232, 0.06);
+  border-top-color: rgba(91, 200, 232, 0.3);
+  transition: all 0.15s;
+}
+
+.prompt-bar.drop-active .input-wrapper {
+  border-left: 2px solid var(--cyan);
+}
