@@ -297,9 +297,25 @@ async function completePathSuggestion(input) {
 function findGhostSuggestion(input) {
   if (!input) return '';
   const lower = input.toLowerCase();
-  for (const cmd of [...knownCommands, ...history]) {
-    if (cmd.toLowerCase().startsWith(lower) && cmd.toLowerCase() !== lower) return cmd;
+
+  // Priorité 1 — commandes connues uniquement
+  for (const cmd of knownCommands) {
+    if (cmd.toLowerCase().startsWith(lower) && cmd.toLowerCase() !== lower) {
+      return cmd;
+    }
   }
+
+  // Priorité 2 — historique, SEULEMENT si l'input contient déjà un espace
+  // (ex: "git ch" → "git checkout" depuis l'historique)
+  // Jamais pour un mot seul comme "cd" ou "mk"
+  if (input.includes(' ')) {
+    for (const cmd of history) {
+      if (cmd.toLowerCase().startsWith(lower) && cmd.toLowerCase() !== lower) {
+        return cmd;
+      }
+    }
+  }
+
   return '';
 }
 
