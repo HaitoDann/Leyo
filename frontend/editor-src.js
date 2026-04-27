@@ -7,7 +7,7 @@ import { markdown }                       from '@codemirror/lang-markdown';
 import { html }                           from '@codemirror/lang-html';
 import { css }                            from '@codemirror/lang-css';
 import { StreamLanguage }                 from '@codemirror/language';
-import { go }                             from '@codemirror/legacy-modes/src/go';
+import { go }                             from '@codemirror/legacy-modes/mode/go';
 import { defaultKeymap, historyKeymap, indentWithTab } from '@codemirror/commands';
 
 function getLanguage(filename) {
