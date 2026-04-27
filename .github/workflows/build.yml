@@ -25,6 +25,14 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Installer dépendances frontend
+        run: npm install
+        working-directory: frontend
+
+      - name: Bundler CodeMirror
+        run: npm run build
+        working-directory: frontend
+
       - name: Installer Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
@@ -53,11 +61,3 @@ jobs:
         with:
           name: leyo-installer
           path: build/windows/LeyoSetup.exe
-
-      - name: Installer dépendances frontend
-        run: npm install
-          working-directory: frontend
-
-      - name: Bundler CodeMirror
-        run: npm run build
-          working-directory: frontend
