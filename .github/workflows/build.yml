@@ -53,3 +53,11 @@ jobs:
         with:
           name: leyo-installer
           path: build/windows/LeyoSetup.exe
+
+      - name: Installer dépendances frontend
+        run: npm install
+          working-directory: frontend
+
+      - name: Bundler CodeMirror
+        run: npm run build
+          working-directory: frontend
