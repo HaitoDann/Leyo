@@ -520,19 +520,27 @@ function initDragDrop() {
   });
 }
 
-// ── Exécution commande ────────────────────────────────────────
 async function runCommand(paneId, input) {
   if (!input) return;
+
+  // ── Éditeur nano ──────────────────────────────
   const nanoMatch = input.trim().match(/^(?:nano|edit|ledit)\s+(.+)$/i);
   if (nanoMatch) {
     await openEditor(paneId, nanoMatch[1].trim());
     return;
   }
 
-  // nano seul → nouveau fichier sans nom
   if (input.trim() === 'nano' || input.trim() === 'edit') {
     const name = prompt('Nom du fichier :');
     if (name) await openEditor(paneId, name.trim());
+    return;
+  }
+
+  // ── PTY : commandes interactives ──────────────
+  const isPTY = await window.go.main.App.IsPTYCommand(input);
+  if (isPTY) {
+    addLine(paneId, `Ouverture de ${input}...`, 'out-muted');
+    await openPTY(paneId, input);
     return;
   }
 
@@ -553,7 +561,6 @@ async function runCommand(paneId, input) {
     updateStatus(paneId, true); return;
   }
 
-  // Commande theme
   if (input.trim() === 'theme') {
     document.getElementById('themeModal').style.display = 'flex';
     updateStatus(paneId, true); return;
@@ -609,7 +616,6 @@ async function runCommand(paneId, input) {
   if (paneId === 1) await refreshFiles();
   await updateGitBranch(paneId);
 }
-
 // ── Suggestion ────────────────────────────────────────────────
 function addSuggestion(paneId, suggestion, originalInput) {
   const output = document.getElementById(`output${paneId}`);
@@ -689,7 +695,7 @@ function setupPane(paneId) {
 
 // ── Bienvenue ─────────────────────────────────────────────────
 async function showWelcome() {
-  addLine(1, 'Leyo Shell  1.7', 'out-welcome');
+  addLine(1, 'Leyo Shell  1.8', 'out-welcome');
   addLine(1, 'Ctrl+K thèmes  ·  Ctrl+D split  ·  Ctrl+F recherche  ·  Tab complétion', 'out-muted');
   addLine(1, '', 'out-normal');
 
@@ -712,7 +718,60 @@ document.addEventListener('click', (e) => {
   if (p1.contains(e.target)) setActivePane(1);
   else if (p2.contains(e.target)) setActivePane(2);
 });
+// ── Système PTY ───────────────────────────────────────────────
+const ptyInstances = { 1: null, 2: null };
 
+function getPTYMeta(command) {
+  const lower = command.toLowerCase().split(' ')[0];
+  const map = {
+    'python':     { icon: '🐍', label: 'Python',     },
+    'python3':    { icon: '🐍', label: 'Python',     },
+    'py':         { icon: '🐍', label: 'Python',     },
+    'node':       { icon: '⬡',  label: 'Node.js',   },
+    'ssh':        { icon: '🔒', label: 'SSH',        },
+    'powershell': { icon: '⚡', label: 'PowerShell', },
+    'pwsh':       { icon: '⚡', label: 'PowerShell', },
+    'mysql':      { icon: '🐬', label: 'MySQL',      },
+    'psql':       { icon: '🐘', label: 'PostgreSQL', },
+    'ipython':    { icon: '🔬', label: 'IPython',    },
+    'wsl':        { icon: '🐧', label: 'WSL',        },
+    'bash':       { icon: '$',  label: 'Bash',       },
+  };
+  return map[lower] || { icon: '❯', label: command };
+}
+
+async function openPTY(paneId, command) {
+  const sessionId = `pty-${paneId}-${Date.now()}`;
+  const meta = getPTYMeta(command);
+
+  window.runtime.EventsOn(`pty:fallback:${sessionId}`, () => {
+    window.runtime.EventsOff(`pty:fallback:${sessionId}`);
+    document.getElementById(`output${paneId}`).style.display = '';
+    document.getElementById(`ptyContainer${paneId}`).style.display = 'none';
+    addLine(paneId, `${meta.icon}  ${meta.label} ouvert dans une fenêtre externe`, 'out-muted');
+    addLine(paneId, '(PTY intégré prévu pour Leyo 2.0)', 'out-muted');
+    updateStatus(paneId, true);
+    document.getElementById(`commandInput${paneId}`).focus();
+  });
+
+  document.getElementById(`output${paneId}`).style.display = 'none';
+  const container = document.getElementById(`ptyContainer${paneId}`);
+  container.style.display = 'flex';
+  document.getElementById(`ptyTitle${paneId}`).textContent = `${meta.icon}  ${meta.label}`;
+
+  await window.go.main.App.StartPTYSession(sessionId, command, 80, 24);
+}
+
+async function closePTY(paneId) {
+  const instance = ptyInstances[paneId];
+  if (instance) {
+    await window.go.main.App.StopPTYSession(instance.sessionId);
+    ptyInstances[paneId] = null;
+  }
+  document.getElementById(`output${paneId}`).style.display = '';
+  document.getElementById(`ptyContainer${paneId}`).style.display = 'none';
+  document.getElementById(`commandInput${paneId}`).focus();
+}
 init().then(() => showWelcome());
 
 // ── Éditeur Nano ──────────────────────────────────────────────

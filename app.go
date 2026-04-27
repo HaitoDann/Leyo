@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/HaitoDann/Leyo/shell"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 type FileEntry struct {
@@ -216,7 +217,7 @@ func (a *App) GetGitBranch() string {
 	return branch
 }
 
-// ── Thèmes ──────────────────────────────────────────────────
+// ── Thèmes ────────────────────────────────────────────────────
 func (a *App) GetThemes() []shell.Theme {
 	return shell.DefaultThemes
 }
@@ -237,7 +238,7 @@ func (a *App) SetTheme(name string) string {
 	return "Thème introuvable"
 }
 
-// ── Alias ────────────────────────────────────────────────────
+// ── Alias ─────────────────────────────────────────────────────
 func (a *App) GetAliases() map[string]string {
 	return shell.LoadAliases()
 }
@@ -254,14 +255,11 @@ func (a *App) DeleteAlias(name string) {
 }
 
 // ── Éditeur de fichiers ───────────────────────────────────────
-
 func (a *App) ReadFile(name string) map[string]string {
 	dir, _ := os.Getwd()
 	fullPath := filepath.Join(dir, name)
-
 	data, err := os.ReadFile(fullPath)
 	if err != nil {
-		// Fichier inexistant → éditeur vide (création)
 		return map[string]string{"content": "", "exists": "false", "path": fullPath}
 	}
 	return map[string]string{
@@ -274,9 +272,51 @@ func (a *App) ReadFile(name string) map[string]string {
 func (a *App) WriteFile(name, content string) string {
 	dir, _ := os.Getwd()
 	fullPath := filepath.Join(dir, name)
-
 	if err := os.WriteFile(fullPath, []byte(content), 0644); err != nil {
 		return err.Error()
 	}
 	return ""
+}
+
+// ── PTY — stubs (implémentation complète en 2.0 NEXUS) ───────
+// Ces méthodes exposent l'API au frontend sans dépendance conpty
+func (a *App) IsPTYCommand(input string) bool {
+	ptyCommands := []string{
+		"python", "python3", "py",
+		"ssh", "node", "npm run",
+		"mysql", "psql", "redis-cli",
+		"powershell", "pwsh",
+		"bash", "sh", "wsl",
+		"ftp", "telnet",
+		"ipython", "julia",
+	}
+	lower := strings.ToLower(strings.TrimSpace(input))
+	for _, cmd := range ptyCommands {
+		if lower == cmd || strings.HasPrefix(lower, cmd+" ") {
+			return true
+		}
+	}
+	return false
+}
+
+func (a *App) StartPTYSession(sessionId, command string, cols, rows int) string {
+	// Stub — PTY réel prévu pour Leyo 2.0 NEXUS
+	// Pour l'instant : ouvre cmd.exe avec la commande dans une fenêtre séparée
+	go func() {
+		cmd := exec.Command("cmd", "/C", "start", "cmd", "/K", command)
+		cmd.Start()
+	}()
+	// Signale immédiatement la fin pour fermer le conteneur PTY
+	runtime.EventsEmit(a.ctx, "pty:fallback:"+sessionId, command)
+	return ""
+}
+
+func (a *App) WritePTY(sessionId, data string) string {
+	return ""
+}
+
+func (a *App) ResizePTY(sessionId string, cols, rows int) {
+}
+
+func (a *App) StopPTYSession(sessionId string) {
 }

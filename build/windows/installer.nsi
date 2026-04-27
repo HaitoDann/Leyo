@@ -1,7 +1,8 @@
 !define APP_NAME "Leyo Shell"
-!define APP_VERSION "1.7"
+!define APP_VERSION "1.8"
 !define APP_PUBLISHER "VinX"
 !define APP_EXE "Leyo.exe"
+!define APP_ICON "icon.ico"
 !define INSTALL_DIR "$PROGRAMFILES64\Leyo"
 
 Name "${APP_NAME} ${APP_VERSION}"
@@ -11,26 +12,29 @@ InstallDirRegKey HKLM "Software\Leyo" "InstallDir"
 RequestExecutionLevel admin
 SetCompressor lzma
 
+; Icône de l'installeur
+Icon "icon.ico"
+UninstallIcon "icon.ico"
+
 ; Pages installation
 Page directory
 Page instfiles
-
-; Pages désinstallation
 UninstPage uninstConfirm
 UninstPage instfiles
 
 Section "Leyo Shell" SEC01
   SetOutPath "$INSTDIR"
   File "..\..\build\bin\${APP_EXE}"
+  File "icon.ico"
 
-  ; Raccourci Bureau
+  ; Raccourci Bureau avec icône
   CreateShortcut "$DESKTOP\Leyo Shell.lnk" \
-    "$INSTDIR\${APP_EXE}" "" "$INSTDIR\${APP_EXE}" 0
+    "$INSTDIR\${APP_EXE}" "" "$INSTDIR\${APP_ICON}" 0
 
-  ; Raccourci Menu Démarrer
+  ; Raccourci Menu Démarrer avec icône
   CreateDirectory "$SMPROGRAMS\Leyo"
   CreateShortcut "$SMPROGRAMS\Leyo\Leyo Shell.lnk" \
-    "$INSTDIR\${APP_EXE}" "" "$INSTDIR\${APP_EXE}" 0
+    "$INSTDIR\${APP_EXE}" "" "$INSTDIR\${APP_ICON}" 0
   CreateShortcut "$SMPROGRAMS\Leyo\Désinstaller Leyo.lnk" \
     "$INSTDIR\uninstall.exe"
 
@@ -49,7 +53,7 @@ Section "Leyo Shell" SEC01
     "Publisher" "${APP_PUBLISHER}"
   WriteRegStr HKLM \
     "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leyo" \
-    "DisplayIcon" "$INSTDIR\${APP_EXE}"
+    "DisplayIcon" "$INSTDIR\${APP_ICON}"
   WriteRegDWORD HKLM \
     "Software\Microsoft\Windows\CurrentVersion\Uninstall\Leyo" \
     "NoModify" 1
@@ -62,6 +66,7 @@ SectionEnd
 
 Section "Uninstall"
   Delete "$INSTDIR\${APP_EXE}"
+  Delete "$INSTDIR\${APP_ICON}"
   Delete "$INSTDIR\uninstall.exe"
   RMDir "$INSTDIR"
   Delete "$DESKTOP\Leyo Shell.lnk"

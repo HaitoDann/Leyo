@@ -29,16 +29,13 @@ func main() {
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		BackgroundColour: &options.RGBA{R: 10, G: 10, B: 15, A: 230},
+		BackgroundColour: &options.RGBA{R: 8, G: 8, B: 14, A: 255},
 		OnStartup:        app.startup,
 		Bind:             []interface{}{app},
 		Windows: &windows.Options{
-			WebviewIsTransparent:              false,
-			WindowIsTranslucent:               false,
-			BackdropType:                      windows.Acrylic,
-			DisableWindowIcon:                 false,
-			IsZoomControlEnabled:              false,
-			WebviewUserDataPath:               dataDir,
+			WebviewIsTransparent: false,
+			WindowIsTranslucent:  false,
+			WebviewUserDataPath:  dataDir,
 		},
 	})
 	if err != nil {

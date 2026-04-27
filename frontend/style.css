@@ -648,3 +648,59 @@ kbd {
   color: var(--warning);
   font-weight: 600;
 }
+
+/* ── PTY TERMINAL ─────────────────────────────── */
+.pty-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background: #0A0A0A;
+}
+
+.pty-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
+  background: rgba(136,85,238,0.08);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.pty-title {
+  font-size: 11px;
+  color: var(--cyan);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.pty-close {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-mute);
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.1s;
+}
+
+.pty-close:hover { border-color: var(--error); color: var(--error); }
+
+.pty-term {
+  flex: 1;
+  padding: 8px;
+  overflow: hidden;
+}
+
+.xterm {
+  height: 100%;
+  font-family: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace !important;
+}
+
+.xterm-viewport { background: transparent !important; }
