@@ -6,11 +6,15 @@
   <title>Leyo Shell</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/xterm.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/xterm.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/addon-fit/addon-fit.min.js"></script>
   <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
   <div class="app">
 
+    <!-- ── HEADER ── -->
     <div class="header">
       <img src="assets/logo.png" height="28" width="28" style="object-fit:contain;opacity:0.9;"/>
       <span class="logo">LEYO</span>
@@ -23,7 +27,7 @@
       </div>
     </div>
 
-    <!-- Modal thèmes -->
+    <!-- ── MODAL THÈMES ── -->
     <div class="theme-modal" id="themeModal" style="display:none;">
       <div class="theme-modal-inner">
         <div class="theme-modal-header">
@@ -34,12 +38,56 @@
       </div>
     </div>
 
+    <!-- ── ÉDITEUR NANO ── -->
+    <div class="editor-modal" id="editorModal" style="display:none;">
+      <div class="editor-inner">
+
+        <div class="editor-header">
+          <div class="editor-title-area">
+            <span class="editor-icon">✎</span>
+            <span class="editor-filename" id="editorFilename">nouveau fichier</span>
+            <span class="editor-status" id="editorStatus"></span>
+          </div>
+          <div class="editor-actions">
+            <span class="editor-shortcut"><kbd>Ctrl+S</kbd> Sauvegarder</span>
+            <span class="editor-shortcut"><kbd>Ctrl+Q</kbd> Quitter</span>
+            <button class="editor-save-btn" id="editorSaveBtn">💾 Sauvegarder</button>
+            <button class="editor-close-btn" id="editorCloseBtn">✕</button>
+          </div>
+        </div>
+
+        <div class="editor-body">
+          <div class="editor-gutter" id="editorGutter"></div>
+          <textarea
+            class="editor-textarea"
+            id="editorTextarea"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+          ></textarea>
+        </div>
+
+        <div class="editor-footer">
+          <span id="editorCursorPos">Ligne 1, Col 1</span>
+          <span id="editorLineCount">0 lignes</span>
+          <span id="editorEncoding">UTF-8</span>
+          <span id="editorModified"></span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── MAIN ── -->
     <div class="main">
 
+      <!-- ── SIDEBAR ── -->
       <div class="sidebar" id="sidebar">
         <div class="sidebar-title">Explorer</div>
         <div class="sidebar-path" id="sidebarPath"></div>
         <div class="file-list" id="fileList"></div>
+
+        <!-- Prévisualisation fichier -->
         <div class="preview-panel" id="previewPanel" style="display:none;">
           <div class="preview-header">
             <span class="preview-filename" id="previewFilename"></span>
@@ -56,27 +104,54 @@
       <!-- Handle resize sidebar -->
       <div class="sidebar-resize-handle" id="sidebarResizeHandle"></div>
 
+      <!-- ── TERMINAUX ── -->
       <div class="terminals-area" id="terminalsArea">
 
+        <!-- Pane 1 -->
         <div class="pane" id="pane1">
+
+          <!-- Barre de recherche -->
           <div class="search-bar" id="searchBar1" style="display:none;">
             <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput1" placeholder="Rechercher..." autocomplete="off"/>
+            <input type="text" id="searchInput1" placeholder="Rechercher dans l'output..." autocomplete="off"/>
             <span class="search-count" id="searchCount1"></span>
             <button class="search-nav" id="searchPrev1">↑</button>
             <button class="search-nav" id="searchNext1">↓</button>
             <button class="search-close" id="searchClose1">✕</button>
           </div>
+
+          <!-- Output normal -->
           <div class="output" id="output1"></div>
+
+          <!-- Conteneur PTY -->
+          <div class="pty-container" id="ptyContainer1" style="display:none;">
+            <div class="pty-header" id="ptyHeader1">
+              <span class="pty-title" id="ptyTitle1">Terminal</span>
+              <button class="pty-close" onclick="closePTY(1)">✕ Fermer</button>
+            </div>
+            <div class="pty-term" id="ptyTerm1"></div>
+          </div>
+
+          <!-- Prompt -->
           <div class="prompt-bar" id="promptBar1">
             <div class="prompt-segments">
-              <div class="seg seg-user"><span class="seg-icon">❯</span><span class="seg-user-label">VinX</span></div>
+              <div class="seg seg-user">
+                <span class="seg-icon">❯</span>
+                <span class="seg-user-label">VinX</span>
+              </div>
               <div class="seg-arrow seg-arrow-user"></div>
-              <div class="seg seg-path"><span class="seg-path-label" id="segPath1">C:\</span></div>
+              <div class="seg seg-path">
+                <span class="seg-path-label" id="segPath1">C:\</span>
+              </div>
               <div class="seg-arrow seg-arrow-path"></div>
-              <div class="seg seg-git" id="segGitBlock1" style="display:none"><span class="seg-icon">⎇</span><span id="segGit1"></span></div>
-              <div class="seg-arrow seg-arrow-git" id="segGitArrow1" style="display:none"></div>
-              <div class="seg seg-status" id="segStatusBlock1"><span id="segStatus1">●</span></div>
+              <div class="seg seg-git" id="segGitBlock1" style="display:none;">
+                <span class="seg-icon">⎇</span>
+                <span id="segGit1"></span>
+              </div>
+              <div class="seg-arrow seg-arrow-git" id="segGitArrow1" style="display:none;"></div>
+              <div class="seg seg-status" id="segStatusBlock1">
+                <span id="segStatus1">●</span>
+              </div>
               <div class="seg-arrow seg-arrow-status"></div>
             </div>
             <div class="input-wrapper">
@@ -84,29 +159,57 @@
               <span class="ghost-text" id="ghostText1"></span>
             </div>
           </div>
+
         </div>
 
+        <!-- Séparateur split -->
         <div class="split-divider" id="splitDivider" style="display:none;"></div>
 
+        <!-- Pane 2 -->
         <div class="pane" id="pane2" style="display:none;">
+
+          <!-- Barre de recherche -->
           <div class="search-bar" id="searchBar2" style="display:none;">
             <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput2" placeholder="Rechercher..." autocomplete="off"/>
+            <input type="text" id="searchInput2" placeholder="Rechercher dans l'output..." autocomplete="off"/>
             <span class="search-count" id="searchCount2"></span>
             <button class="search-nav" id="searchPrev2">↑</button>
             <button class="search-nav" id="searchNext2">↓</button>
             <button class="search-close" id="searchClose2">✕</button>
           </div>
+
+          <!-- Output normal -->
           <div class="output" id="output2"></div>
+
+          <!-- Conteneur PTY -->
+          <div class="pty-container" id="ptyContainer2" style="display:none;">
+            <div class="pty-header" id="ptyHeader2">
+              <span class="pty-title" id="ptyTitle2">Terminal</span>
+              <button class="pty-close" onclick="closePTY(2)">✕ Fermer</button>
+            </div>
+            <div class="pty-term" id="ptyTerm2"></div>
+          </div>
+
+          <!-- Prompt -->
           <div class="prompt-bar" id="promptBar2">
             <div class="prompt-segments">
-              <div class="seg seg-user"><span class="seg-icon">❯</span><span class="seg-user-label">VinX</span></div>
+              <div class="seg seg-user">
+                <span class="seg-icon">❯</span>
+                <span class="seg-user-label">VinX</span>
+              </div>
               <div class="seg-arrow seg-arrow-user"></div>
-              <div class="seg seg-path"><span class="seg-path-label" id="segPath2">C:\</span></div>
+              <div class="seg seg-path">
+                <span class="seg-path-label" id="segPath2">C:\</span>
+              </div>
               <div class="seg-arrow seg-arrow-path"></div>
-              <div class="seg seg-git" id="segGitBlock2" style="display:none"><span class="seg-icon">⎇</span><span id="segGit2"></span></div>
-              <div class="seg-arrow seg-arrow-git" id="segGitArrow2" style="display:none"></div>
-              <div class="seg seg-status" id="segStatusBlock2"><span id="segStatus2">●</span></div>
+              <div class="seg seg-git" id="segGitBlock2" style="display:none;">
+                <span class="seg-icon">⎇</span>
+                <span id="segGit2"></span>
+              </div>
+              <div class="seg-arrow seg-arrow-git" id="segGitArrow2" style="display:none;"></div>
+              <div class="seg seg-status" id="segStatusBlock2">
+                <span id="segStatus2">●</span>
+              </div>
               <div class="seg-arrow seg-arrow-status"></div>
             </div>
             <div class="input-wrapper">
@@ -114,6 +217,7 @@
               <span class="ghost-text" id="ghostText2"></span>
             </div>
           </div>
+
         </div>
 
       </div>

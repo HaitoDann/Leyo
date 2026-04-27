@@ -252,3 +252,31 @@ func (a *App) SaveAlias(name, command string) string {
 func (a *App) DeleteAlias(name string) {
 	shell.DeleteAlias(name)
 }
+
+// ── Éditeur de fichiers ───────────────────────────────────────
+
+func (a *App) ReadFile(name string) map[string]string {
+	dir, _ := os.Getwd()
+	fullPath := filepath.Join(dir, name)
+
+	data, err := os.ReadFile(fullPath)
+	if err != nil {
+		// Fichier inexistant → éditeur vide (création)
+		return map[string]string{"content": "", "exists": "false", "path": fullPath}
+	}
+	return map[string]string{
+		"content": string(data),
+		"exists":  "true",
+		"path":    fullPath,
+	}
+}
+
+func (a *App) WriteFile(name, content string) string {
+	dir, _ := os.Getwd()
+	fullPath := filepath.Join(dir, name)
+
+	if err := os.WriteFile(fullPath, []byte(content), 0644); err != nil {
+		return err.Error()
+	}
+	return ""
+}

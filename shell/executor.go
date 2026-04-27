@@ -17,18 +17,17 @@ func Run(input string) {
 }
 
 func RunWithOutput(input string) (string, string) {
-	// Résout les alias avant d'exécuter
 	input = ResolveAlias(input)
 	command := Parse(input)
 
+	// Essaie d'abord directement (commandes PATH, npm, python, etc.)
 	cmd := exec.Command("cmd", "/C", command)
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		HideWindow: true,
-	}
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 
 	output, err := cmd.CombinedOutput()
 	result := strings.TrimSpace(string(output))
 
+	// Si erreur mais qu'il y a quand même un output → c'est l'output de l'erreur
 	if err != nil && result == "" {
 		return "", err.Error()
 	}

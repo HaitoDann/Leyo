@@ -523,6 +523,18 @@ function initDragDrop() {
 // ── Exécution commande ────────────────────────────────────────
 async function runCommand(paneId, input) {
   if (!input) return;
+  const nanoMatch = input.trim().match(/^(?:nano|edit|ledit)\s+(.+)$/i);
+  if (nanoMatch) {
+    await openEditor(paneId, nanoMatch[1].trim());
+    return;
+  }
+
+  // nano seul → nouveau fichier sans nom
+  if (input.trim() === 'nano' || input.trim() === 'edit') {
+    const name = prompt('Nom du fichier :');
+    if (name) await openEditor(paneId, name.trim());
+    return;
+  }
 
   await updateGhost(paneId, '');
   const path = document.getElementById(`segPath${paneId}`).textContent;
@@ -702,3 +714,154 @@ document.addEventListener('click', (e) => {
 });
 
 init().then(() => showWelcome());
+
+// ── Éditeur Nano ──────────────────────────────────────────────
+const editor = {
+  filename: '',
+  original: '',
+  modified: false,
+  paneId: 1,
+};
+
+async function openEditor(paneId, filename) {
+  editor.paneId  = paneId;
+  editor.filename = filename.trim();
+
+  const result = await window.go.main.App.ReadFile(editor.filename);
+
+  document.getElementById('editorFilename').textContent = editor.filename;
+  document.getElementById('editorStatus').textContent   =
+    result.exists === 'true' ? `📄 ${result.path}` : '✦ nouveau fichier';
+
+  const textarea = document.getElementById('editorTextarea');
+  textarea.value = result.content;
+  editor.original = result.content;
+  editor.modified = false;
+
+  updateEditorFooter();
+  updateGutter();
+
+  document.getElementById('editorModal').style.display = 'flex';
+  document.getElementById('editorModified').textContent = '';
+  textarea.focus();
+
+  // Place le curseur au début
+  textarea.setSelectionRange(0, 0);
+}
+
+async function saveEditor() {
+  const textarea = document.getElementById('editorTextarea');
+  const content  = textarea.value;
+
+  const err = await window.go.main.App.WriteFile(editor.filename, content);
+  if (err) {
+    document.getElementById('editorStatus').textContent = `❌ ${err}`;
+    return;
+  }
+
+  editor.original = content;
+  editor.modified = false;
+  document.getElementById('editorModified').textContent = '';
+  document.getElementById('editorStatus').textContent = '✅ Sauvegardé';
+  setTimeout(() => {
+    document.getElementById('editorStatus').textContent =
+      `📄 ${editor.filename}`;
+  }, 2000);
+
+  // Rafraîchit la sidebar si fichier créé
+  await refreshFiles();
+}
+
+function closeEditor() {
+  if (editor.modified) {
+    const confirm = window.confirm(
+      `Le fichier "${editor.filename}" a été modifié.\nQuitter sans sauvegarder ?`
+    );
+    if (!confirm) return;
+  }
+  document.getElementById('editorModal').style.display = 'none';
+  document.getElementById(`commandInput${editor.paneId}`).focus();
+}
+
+function updateGutter() {
+  const textarea = document.getElementById('editorTextarea');
+  const gutter   = document.getElementById('editorGutter');
+  const lines    = textarea.value.split('\n').length;
+
+  gutter.innerHTML = '';
+  for (let i = 1; i <= Math.max(lines, 1); i++) {
+    const div = document.createElement('div');
+    div.className = 'gutter-line';
+    div.textContent = i;
+    gutter.appendChild(div);
+  }
+
+  document.getElementById('editorLineCount').textContent = `${lines} ligne${lines > 1 ? 's' : ''}`;
+}
+
+function updateEditorFooter() {
+  const textarea = document.getElementById('editorTextarea');
+  const text     = textarea.value;
+  const pos      = textarea.selectionStart;
+
+  const before = text.substring(0, pos);
+  const line   = before.split('\n').length;
+  const col    = before.split('\n').pop().length + 1;
+
+  document.getElementById('editorCursorPos').textContent = `Ligne ${line}, Col ${col}`;
+
+  // Met en valeur le numéro de ligne actif
+  document.querySelectorAll('.gutter-line').forEach((el, i) => {
+    el.classList.toggle('active', i + 1 === line);
+  });
+}
+
+// Listeners éditeur
+document.getElementById('editorSaveBtn').addEventListener('click', saveEditor);
+document.getElementById('editorCloseBtn').addEventListener('click', closeEditor);
+
+document.getElementById('editorTextarea').addEventListener('input', () => {
+  editor.modified = true;
+  document.getElementById('editorModified').textContent = '● Modifié';
+  updateGutter();
+  updateEditorFooter();
+});
+
+document.getElementById('editorTextarea').addEventListener('keydown', async (e) => {
+  // Ctrl+S → sauvegarde
+  if (e.ctrlKey && e.key === 's') {
+    e.preventDefault();
+    await saveEditor();
+    return;
+  }
+
+  // Ctrl+Q → quitte
+  if (e.ctrlKey && e.key === 'q') {
+    e.preventDefault();
+    closeEditor();
+    return;
+  }
+
+  // Tab → insère 2 espaces (pas de changement de focus)
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const ta    = e.target;
+    const start = ta.selectionStart;
+    const end   = ta.selectionEnd;
+    ta.value    = ta.value.slice(0, start) + '  ' + ta.value.slice(end);
+    ta.selectionStart = ta.selectionEnd = start + 2;
+    updateGutter();
+    return;
+  }
+
+  // Échap → propose de quitter
+  if (e.key === 'Escape') {
+    closeEditor();
+    return;
+  }
+
+  setTimeout(updateEditorFooter, 0);
+});
+
+document.getElementById('editorTextarea').addEventListener('click', updateEditorFooter);
+document.getElementById('editorTextarea').addEventListener('keyup', updateEditorFooter);
