@@ -6,10 +6,8 @@
   <title>Leyo Shell</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/xterm.min.css"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/xterm.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/addon-fit/addon-fit.min.js"></script>
   <link rel="stylesheet" href="style.css"/>
+  <script type="module" src="editor.js"></script>
 </head>
 <body>
   <div class="app">
@@ -38,7 +36,7 @@
       </div>
     </div>
 
-    <!-- ── ÉDITEUR NANO ── -->
+    <!-- ── ÉDITEUR CODEMIRROR ── -->
     <div class="editor-modal" id="editorModal" style="display:none;">
       <div class="editor-inner">
 
@@ -57,15 +55,8 @@
         </div>
 
         <div class="editor-body">
-          <div class="editor-gutter" id="editorGutter"></div>
-          <textarea
-            class="editor-textarea"
-            id="editorTextarea"
-            autocomplete="off"
-            autocorrect="off"
-            autocapitalize="off"
-            spellcheck="false"
-          ></textarea>
+          <!-- CodeMirror monte ici — gutter intégré nativement -->
+          <div id="cmEditor" class="cm-editor-container"></div>
         </div>
 
         <div class="editor-footer">
@@ -110,7 +101,6 @@
         <!-- Pane 1 -->
         <div class="pane" id="pane1">
 
-          <!-- Barre de recherche -->
           <div class="search-bar" id="searchBar1" style="display:none;">
             <span class="search-icon">🔍</span>
             <input type="text" id="searchInput1" placeholder="Rechercher dans l'output..." autocomplete="off"/>
@@ -120,10 +110,8 @@
             <button class="search-close" id="searchClose1">✕</button>
           </div>
 
-          <!-- Output normal -->
           <div class="output" id="output1"></div>
 
-          <!-- Conteneur PTY -->
           <div class="pty-container" id="ptyContainer1" style="display:none;">
             <div class="pty-header" id="ptyHeader1">
               <span class="pty-title" id="ptyTitle1">Terminal</span>
@@ -132,7 +120,6 @@
             <div class="pty-term" id="ptyTerm1"></div>
           </div>
 
-          <!-- Prompt -->
           <div class="prompt-bar" id="promptBar1">
             <div class="prompt-segments">
               <div class="seg seg-user">
@@ -168,7 +155,6 @@
         <!-- Pane 2 -->
         <div class="pane" id="pane2" style="display:none;">
 
-          <!-- Barre de recherche -->
           <div class="search-bar" id="searchBar2" style="display:none;">
             <span class="search-icon">🔍</span>
             <input type="text" id="searchInput2" placeholder="Rechercher dans l'output..." autocomplete="off"/>
@@ -178,10 +164,8 @@
             <button class="search-close" id="searchClose2">✕</button>
           </div>
 
-          <!-- Output normal -->
           <div class="output" id="output2"></div>
 
-          <!-- Conteneur PTY -->
           <div class="pty-container" id="ptyContainer2" style="display:none;">
             <div class="pty-header" id="ptyHeader2">
               <span class="pty-title" id="ptyTitle2">Terminal</span>
@@ -190,7 +174,6 @@
             <div class="pty-term" id="ptyTerm2"></div>
           </div>
 
-          <!-- Prompt -->
           <div class="prompt-bar" id="promptBar2">
             <div class="prompt-segments">
               <div class="seg seg-user">

@@ -22,10 +22,12 @@ function applyTheme(theme) {
   root.setProperty('--text',    theme.text);
   currentThemeName = theme.name;
   renderThemeCards();
+  // Recharge le thème dans l'éditeur si ouvert
+  window.LeyoEditor?.reloadTheme();
 }
 
 async function loadThemes() {
-  const themes = await window.go.main.App.GetThemes();
+  const themes  = await window.go.main.App.GetThemes();
   const current = await window.go.main.App.GetCurrentTheme();
   applyTheme(current);
   renderThemeGrid(themes);
@@ -62,7 +64,6 @@ function renderThemeCards() {
   });
 }
 
-// Modal thèmes
 document.getElementById('themeBtn').addEventListener('click', () => {
   document.getElementById('themeModal').style.display = 'flex';
 });
@@ -96,8 +97,7 @@ function initSidebarResize() {
 
   document.addEventListener('mousemove', (e) => {
     if (!isResizing) return;
-    const delta    = e.clientX - startX;
-    const newWidth = Math.min(400, Math.max(120, startWidth + delta));
+    const newWidth = Math.min(400, Math.max(120, startWidth + e.clientX - startX));
     sidebar.style.width = newWidth + 'px';
   });
 
@@ -141,14 +141,14 @@ function renderTabs() {
 async function switchTab(id) {
   if (activeTab) {
     activeTab.output = document.getElementById('output1').innerHTML;
-    activeTab.path = document.getElementById('segPath1').textContent;
+    activeTab.path   = document.getElementById('segPath1').textContent;
   }
   activeTab = tabs.find(t => t.id === id);
   if (!activeTab) return;
-  document.getElementById('output1').innerHTML = activeTab.output;
-  document.getElementById('segPath1').textContent = activeTab.path;
-  document.getElementById('sidebarPath').textContent = activeTab.path;
-  document.getElementById('commandInput1').value = '';
+  document.getElementById('output1').innerHTML          = activeTab.output;
+  document.getElementById('segPath1').textContent       = activeTab.path;
+  document.getElementById('sidebarPath').textContent    = activeTab.path;
+  document.getElementById('commandInput1').value        = '';
   await updateGhost(1, '');
   renderTabs();
   await window.go.main.App.RunCommand(`cd "${activeTab.path}"`);
@@ -174,20 +174,20 @@ async function toggleSplit() {
   const btn     = document.getElementById('splitBtn');
 
   if (splitActive) {
-    pane2.style.display = 'flex';
+    pane2.style.display   = 'flex';
     divider.style.display = 'block';
     btn.classList.add('active');
     setActivePane(2);
     const path = await window.go.main.App.GetCurrentPath();
     document.getElementById('segPath2').textContent = path;
-    addLine(2, 'Leyo Shell  1.7', 'out-welcome');
+    addLine(2, 'Leyo Shell  1.9', 'out-welcome');
     addLine(2, 'Ctrl+D pour fermer le split', 'out-muted');
     addLine(2, '', 'out-normal');
     await updateGitBranch(2);
     updateStatus(2, true);
     document.getElementById('commandInput2').focus();
   } else {
-    pane2.style.display = 'none';
+    pane2.style.display   = 'none';
     divider.style.display = 'none';
     btn.classList.remove('active');
     setActivePane(1);
@@ -205,11 +205,93 @@ document.getElementById('pane1').addEventListener('mousedown', () => setActivePa
 document.getElementById('pane2').addEventListener('mousedown', () => setActivePane(2));
 document.getElementById('splitBtn').addEventListener('click', toggleSplit);
 
+// ── Éditeur CodeMirror ────────────────────────────────────────
+async function openEditor(paneId, filename) {
+  if (!window.LeyoEditor) {
+    addLine(paneId, '⏳ Éditeur en cours de chargement...', 'out-muted');
+    await new Promise(r => setTimeout(r, 600));
+  }
+  if (!window.LeyoEditor) {
+    addLine(paneId, '❌ Éditeur indisponible', 'out-error');
+    return;
+  }
+  await window.LeyoEditor.open(paneId, filename);
+}
+
+async function saveEditor() {
+  await window.LeyoEditor?.save();
+}
+
+function closeEditor() {
+  window.LeyoEditor?.close();
+}
+
+document.getElementById('editorSaveBtn').addEventListener('click', saveEditor);
+document.getElementById('editorCloseBtn').addEventListener('click', closeEditor);
+
+// ── Système PTY ───────────────────────────────────────────────
+const ptyInstances = { 1: null, 2: null };
+
+function getPTYMeta(command) {
+  const lower = command.toLowerCase().split(' ')[0];
+  const map = {
+    'python':     { icon: '🐍', label: 'Python'     },
+    'python3':    { icon: '🐍', label: 'Python'     },
+    'py':         { icon: '🐍', label: 'Python'     },
+    'node':       { icon: '⬡',  label: 'Node.js'   },
+    'ssh':        { icon: '🔒', label: 'SSH'        },
+    'powershell': { icon: '⚡', label: 'PowerShell' },
+    'pwsh':       { icon: '⚡', label: 'PowerShell' },
+    'mysql':      { icon: '🐬', label: 'MySQL'      },
+    'psql':       { icon: '🐘', label: 'PostgreSQL' },
+    'ipython':    { icon: '🔬', label: 'IPython'    },
+    'wsl':        { icon: '🐧', label: 'WSL'        },
+    'bash':       { icon: '$',  label: 'Bash'       },
+  };
+  return map[lower] || { icon: '❯', label: command };
+}
+
+async function openPTY(paneId, command) {
+  const sessionId = `pty-${paneId}-${Date.now()}`;
+  const meta = getPTYMeta(command);
+
+  window.runtime.EventsOn(`pty:fallback:${sessionId}`, () => {
+    window.runtime.EventsOff(`pty:fallback:${sessionId}`);
+    document.getElementById(`output${paneId}`).style.display  = '';
+    document.getElementById(`ptyContainer${paneId}`).style.display = 'none';
+    addLine(paneId, `${meta.icon}  ${meta.label} ouvert dans une fenêtre externe`, 'out-muted');
+    addLine(paneId, '(PTY intégré prévu pour Leyo 2.0)', 'out-muted');
+    updateStatus(paneId, true);
+    document.getElementById(`commandInput${paneId}`).focus();
+  });
+
+  document.getElementById(`output${paneId}`).style.display       = 'none';
+  document.getElementById(`ptyContainer${paneId}`).style.display = 'flex';
+  document.getElementById(`ptyTitle${paneId}`).textContent       = `${meta.icon}  ${meta.label}`;
+
+  await window.go.main.App.StartPTYSession(sessionId, command, 80, 24);
+}
+
+async function closePTY(paneId) {
+  const instance = ptyInstances[paneId];
+  if (instance) {
+    await window.go.main.App.StopPTYSession(instance.sessionId);
+    ptyInstances[paneId] = null;
+  }
+  document.getElementById(`output${paneId}`).style.display       = '';
+  document.getElementById(`ptyContainer${paneId}`).style.display = 'none';
+  document.getElementById(`commandInput${paneId}`).focus();
+}
+
 // ── Prévisualisation ──────────────────────────────────────────
 let currentPreviewFile = null;
 
 function langClass(ext) {
-  const map = { '.go':'lang-go','.json':'lang-json','.md':'lang-md','.yml':'lang-yml','.yaml':'lang-yml','.html':'lang-html','.css':'lang-css','.js':'lang-js','.ts':'lang-js' };
+  const map = {
+    '.go':'lang-go', '.json':'lang-json', '.md':'lang-md',
+    '.yml':'lang-yml', '.yaml':'lang-yml', '.html':'lang-html',
+    '.css':'lang-css', '.js':'lang-js', '.ts':'lang-js'
+  };
   return map[ext.toLowerCase()] || '';
 }
 
@@ -221,7 +303,7 @@ async function previewFile(name, ext) {
   currentPreviewFile = name;
   document.getElementById('previewFilename').textContent = name;
   body.textContent = '…';
-  body.className = 'preview-body';
+  body.className   = 'preview-body';
   panel.style.display = 'flex';
 
   document.querySelectorAll('.file-item').forEach(el =>
@@ -231,14 +313,23 @@ async function previewFile(name, ext) {
   const result = await window.go.main.App.ReadFilePreview(name);
   document.getElementById('previewSize').textContent = result.size;
 
-  if (result.error) { body.textContent = result.error; document.getElementById('previewLines').textContent = ''; return; }
+  if (result.error) {
+    body.textContent = result.error;
+    document.getElementById('previewLines').textContent = '';
+    return;
+  }
 
   if (result.binary === 'true') {
     document.getElementById('previewLines').textContent = '';
-    body.innerHTML = `<div class="preview-binary"><span class="binary-icon">⚙</span><span>Fichier binaire</span><span style="font-size:10px;color:var(--text-mute)">${result.size}</span></div>`;
+    body.innerHTML = `
+      <div class="preview-binary">
+        <span class="binary-icon">⚙</span>
+        <span>Fichier binaire</span>
+        <span style="font-size:10px;color:var(--text-mute)">${result.size}</span>
+      </div>`;
   } else {
     document.getElementById('previewLines').textContent = `${result.lines} lignes`;
-    body.className = 'preview-body ' + langClass(ext);
+    body.className  = 'preview-body ' + langClass(ext);
     body.textContent = result.content;
   }
 }
@@ -285,7 +376,11 @@ function doSearch(paneId) {
 
   if (!query) { count.textContent = ''; searchState[paneId].matches = []; return; }
 
-  output.innerHTML = output.innerHTML.replace(new RegExp(`(${escapeRegex(query)})`, 'gi'), '<mark class="search-highlight">$1</mark>');
+  output.innerHTML = output.innerHTML.replace(
+    new RegExp(`(${escapeRegex(query)})`, 'gi'),
+    '<mark class="search-highlight">$1</mark>'
+  );
+
   const marks = Array.from(output.querySelectorAll('.search-highlight'));
   searchState[paneId].matches = marks;
   searchState[paneId].current = 0;
@@ -297,11 +392,24 @@ function highlightCurrent(paneId) {
   const s = searchState[paneId];
   s.matches.forEach((m, i) => m.classList.toggle('current', i === s.current));
   if (s.matches[s.current]) s.matches[s.current].scrollIntoView({ block: 'center' });
-  document.getElementById(`searchCount${paneId}`).textContent = `${s.current + 1} / ${s.matches.length}`;
+  document.getElementById(`searchCount${paneId}`).textContent =
+    `${s.current + 1} / ${s.matches.length}`;
 }
 
-function searchNext(paneId) { const s = searchState[paneId]; if (!s.matches.length) return; s.current = (s.current + 1) % s.matches.length; highlightCurrent(paneId); }
-function searchPrev(paneId) { const s = searchState[paneId]; if (!s.matches.length) return; s.current = (s.current - 1 + s.matches.length) % s.matches.length; highlightCurrent(paneId); }
+function searchNext(paneId) {
+  const s = searchState[paneId];
+  if (!s.matches.length) return;
+  s.current = (s.current + 1) % s.matches.length;
+  highlightCurrent(paneId);
+}
+
+function searchPrev(paneId) {
+  const s = searchState[paneId];
+  if (!s.matches.length) return;
+  s.current = (s.current - 1 + s.matches.length) % s.matches.length;
+  highlightCurrent(paneId);
+}
+
 function escapeRegex(str) { return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
 [1, 2].forEach(id => {
@@ -330,8 +438,14 @@ async function updateGitBranch(paneId) {
   const block  = document.getElementById(`segGitBlock${paneId}`);
   const arrow  = document.getElementById(`segGitArrow${paneId}`);
   const label  = document.getElementById(`segGit${paneId}`);
-  if (branch) { label.textContent = branch; block.style.display = 'flex'; arrow.style.display = 'block'; }
-  else { block.style.display = 'none'; arrow.style.display = 'none'; }
+  if (branch) {
+    label.textContent      = branch;
+    block.style.display    = 'flex';
+    arrow.style.display    = 'block';
+  } else {
+    block.style.display    = 'none';
+    arrow.style.display    = 'none';
+  }
 }
 
 // ── Statut ────────────────────────────────────────────────────
@@ -339,8 +453,15 @@ function updateStatus(paneId, ok) {
   const seg   = document.getElementById(`segStatusBlock${paneId}`);
   const dot   = document.getElementById(`segStatus${paneId}`);
   const arrow = seg.parentElement.querySelector('.seg-arrow-status');
-  if (ok) { seg.className = 'seg seg-status'; dot.textContent = '●'; if (arrow) arrow.className = 'seg-arrow seg-arrow-status'; }
-  else    { seg.className = 'seg seg-status fail'; dot.textContent = '✕'; if (arrow) arrow.className = 'seg-arrow seg-arrow-status fail'; }
+  if (ok) {
+    seg.className  = 'seg seg-status';
+    dot.textContent = '●';
+    if (arrow) arrow.className = 'seg-arrow seg-arrow-status';
+  } else {
+    seg.className  = 'seg seg-status fail';
+    dot.textContent = '✕';
+    if (arrow) arrow.className = 'seg-arrow seg-arrow-status fail';
+  }
 }
 
 // ── Ghost text ────────────────────────────────────────────────
@@ -350,7 +471,7 @@ const knownCommands = [
   'git','git add','git commit','git push','git pull','git status',
   'git clone','git checkout','git branch','git log','git diff',
   'go build','go run','go mod','go test','go get',
-  'history','exit','alias','unalias','theme'
+  'history','exit','alias','unalias','theme','nano','edit'
 ];
 
 async function completePathSuggestion(input) {
@@ -360,7 +481,10 @@ async function completePathSuggestion(input) {
   const prefix = m[1], partial = m[2];
   const lastSep = Math.max(partial.lastIndexOf('\\'), partial.lastIndexOf('/'));
   let dirPrefix = '', toComplete = partial;
-  if (lastSep !== -1) { dirPrefix = partial.slice(0, lastSep + 1); toComplete = partial.slice(lastSep + 1); }
+  if (lastSep !== -1) {
+    dirPrefix  = partial.slice(0, lastSep + 1);
+    toComplete = partial.slice(lastSep + 1);
+  }
   if (!toComplete) return '';
   const files = await window.go.main.App.ListFilesAt(dirPrefix || '.');
   const match = files.filter(f => f.IsDir).find(d =>
@@ -398,7 +522,8 @@ async function updateGhost(paneId, input) {
 }
 
 function measureTextWidth(text) {
-  const canvas = measureTextWidth._canvas || (measureTextWidth._canvas = document.createElement('canvas'));
+  const canvas = measureTextWidth._canvas ||
+    (measureTextWidth._canvas = document.createElement('canvas'));
   const ctx = canvas.getContext('2d');
   ctx.font = "13px 'JetBrains Mono', Consolas, monospace";
   return ctx.measureText(text).width;
@@ -418,9 +543,11 @@ async function init() {
 // ── Output ────────────────────────────────────────────────────
 function addLine(paneId, text, cls = 'out-normal') {
   const output = document.getElementById(`output${paneId}`);
-  const div = document.createElement('div');
-  div.className = cls; div.textContent = text;
-  output.appendChild(div); output.scrollTop = output.scrollHeight;
+  const div    = document.createElement('div');
+  div.className  = cls;
+  div.textContent = text;
+  output.appendChild(div);
+  output.scrollTop = output.scrollHeight;
   searchState[paneId].originalHTML = '';
 }
 
@@ -428,21 +555,21 @@ function addLine(paneId, text, cls = 'out-normal') {
 function getFileIcon(f) {
   if (f.IsDir) {
     const lower = f.Name.toLowerCase();
-    if (lower === '.git') return { icon: '⎇', cls: 'type-git' };
-    if (['windows','system32'].includes(lower)) return { icon: '⊞', cls: 'type-sys' };
-    if (lower === 'node_modules') return { icon: '⬡', cls: 'type-other' };
-    if (lower === '$recycle.bin') return { icon: '◌', cls: 'type-sys' };
+    if (lower === '.git')                        return { icon: '⎇', cls: 'type-git'   };
+    if (['windows','system32'].includes(lower))  return { icon: '⊞', cls: 'type-sys'   };
+    if (lower === 'node_modules')                return { icon: '⬡', cls: 'type-other' };
+    if (lower === '$recycle.bin')                return { icon: '◌', cls: 'type-sys'   };
     return { icon: '▶', cls: 'type-dir' };
   }
   switch ((f.Ext || '').toLowerCase()) {
-    case '.go':                return { icon: '◆', cls: 'type-go' };
-    case '.exe': case '.msi':  return { icon: '⚙', cls: 'type-exe' };
-    case '.md':                return { icon: '≡', cls: 'type-md' };
-    case '.yml': case '.yaml': return { icon: '◈', cls: 'type-yml' };
+    case '.go':                return { icon: '◆', cls: 'type-go'    };
+    case '.exe': case '.msi':  return { icon: '⚙', cls: 'type-exe'  };
+    case '.md':                return { icon: '≡', cls: 'type-md'   };
+    case '.yml': case '.yaml': return { icon: '◈', cls: 'type-yml'  };
     case '.json':              return { icon: '◈', cls: 'type-json' };
     case '.js':  case '.ts':   return { icon: '◆', cls: 'type-json' };
-    case '.css':               return { icon: '◈', cls: 'type-yml' };
-    case '.html':              return { icon: '◈', cls: 'type-go' };
+    case '.css':               return { icon: '◈', cls: 'type-yml'  };
+    case '.html':              return { icon: '◈', cls: 'type-go'   };
     default:                   return { icon: '·', cls: 'type-other' };
   }
 }
@@ -457,21 +584,25 @@ async function refreshFiles() {
 
   list.innerHTML = '';
   files.forEach(f => {
-    const item = document.createElement('div');
-    item.className = 'file-item';
+    const item   = document.createElement('div');
+    item.className    = 'file-item';
     item.dataset.name = f.Name;
 
     const { icon, cls } = getFileIcon(f);
     const iconEl = document.createElement('span');
-    iconEl.className = `icon ${cls}`;
+    iconEl.className   = `icon ${cls}`;
     iconEl.textContent = icon;
 
     const nameEl = document.createElement('span');
-    nameEl.className = `fname ${f.IsDir ? 'type-dir' : ''}`;
+    nameEl.className   = `fname ${f.IsDir ? 'type-dir' : ''}`;
     nameEl.textContent = f.Name;
 
     item.draggable = true;
-    item.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', f.Name); e.dataTransfer.effectAllowed = 'copy'; item.classList.add('dragging'); });
+    item.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', f.Name);
+      e.dataTransfer.effectAllowed = 'copy';
+      item.classList.add('dragging');
+    });
     item.addEventListener('dragend', () => item.classList.remove('dragging'));
 
     if (f.IsDir) {
@@ -483,7 +614,7 @@ async function refreshFiles() {
         input.focus();
       };
     } else {
-      item.title = 'Clic pour prévisualiser';
+      item.title = 'Clic pour prévisualiser · Glisse vers le prompt';
       item.addEventListener('click', () => previewFile(f.Name, f.Ext || ''));
     }
 
@@ -503,10 +634,17 @@ async function refreshFiles() {
 function initDragDrop() {
   [1, 2].forEach(id => {
     const bar = document.getElementById(`promptBar${id}`);
-    bar.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; bar.classList.add('drop-active'); });
-    bar.addEventListener('dragleave', (e) => { if (!bar.contains(e.relatedTarget)) bar.classList.remove('drop-active'); });
+    bar.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      bar.classList.add('drop-active');
+    });
+    bar.addEventListener('dragleave', (e) => {
+      if (!bar.contains(e.relatedTarget)) bar.classList.remove('drop-active');
+    });
     bar.addEventListener('drop', (e) => {
-      e.preventDefault(); bar.classList.remove('drop-active');
+      e.preventDefault();
+      bar.classList.remove('drop-active');
       const name = e.dataTransfer.getData('text/plain');
       if (!name) return;
       const input = document.getElementById(`commandInput${id}`);
@@ -520,23 +658,23 @@ function initDragDrop() {
   });
 }
 
+// ── Exécution commande ────────────────────────────────────────
 async function runCommand(paneId, input) {
   if (!input) return;
 
-  // ── Éditeur nano ──────────────────────────────
+  // Éditeur nano
   const nanoMatch = input.trim().match(/^(?:nano|edit|ledit)\s+(.+)$/i);
   if (nanoMatch) {
     await openEditor(paneId, nanoMatch[1].trim());
     return;
   }
-
   if (input.trim() === 'nano' || input.trim() === 'edit') {
     const name = prompt('Nom du fichier :');
     if (name) await openEditor(paneId, name.trim());
     return;
   }
 
-  // ── PTY : commandes interactives ──────────────
+  // PTY : commandes interactives
   const isPTY = await window.go.main.App.IsPTYCommand(input);
   if (isPTY) {
     addLine(paneId, `Ouverture de ${input}...`, 'out-muted');
@@ -553,24 +691,28 @@ async function runCommand(paneId, input) {
   if (input.trim() === 'clear') {
     document.getElementById(`output${paneId}`).innerHTML = '';
     searchState[paneId].originalHTML = '';
-    updateStatus(paneId, true); return;
+    updateStatus(paneId, true);
+    return;
   }
 
   if (input.trim() === 'history') {
     history.forEach((cmd, i) => addLine(paneId, `  ${i + 1}  ${cmd}`, 'out-muted'));
-    updateStatus(paneId, true); return;
+    updateStatus(paneId, true);
+    return;
   }
 
   if (input.trim() === 'theme') {
     document.getElementById('themeModal').style.display = 'flex';
-    updateStatus(paneId, true); return;
+    updateStatus(paneId, true);
+    return;
   }
 
   if (input.trim() === 'alias') {
     const aliases = await window.go.main.App.GetAliases();
     if (!Object.keys(aliases).length) addLine(paneId, '  Aucun alias.', 'out-muted');
     else Object.entries(aliases).forEach(([k, v]) => addLine(paneId, `  ${k}  →  ${v}`, 'out-muted'));
-    updateStatus(paneId, true); return;
+    updateStatus(paneId, true);
+    return;
   }
 
   if (input.trim().startsWith('alias ')) {
@@ -593,9 +735,11 @@ async function runCommand(paneId, input) {
     const name = input.trim().slice(8).trim();
     await window.go.main.App.DeleteAlias(name);
     addLine(paneId, `✅ alias supprimé : ${name}`, 'out-success');
-    updateStatus(paneId, true); return;
+    updateStatus(paneId, true);
+    return;
   }
 
+  // cat → ouvre aussi la prévisualisation
   const catMatch = input.trim().match(/^(?:cat|type)\s+(.+)$/i);
   if (catMatch) await previewFile(catMatch[1].trim(), '.' + catMatch[1].trim().split('.').pop());
 
@@ -604,7 +748,7 @@ async function runCommand(paneId, input) {
   paneState[1].historyIndex = history.length;
   paneState[2].historyIndex = history.length;
 
-  const result = await window.go.main.App.RunCommand(input);
+  const result   = await window.go.main.App.RunCommand(input);
   const hasError = !!result.error;
   if (result.error)      addLine(paneId, '❌ ' + result.error, 'out-error');
   if (result.suggestion) addSuggestion(paneId, result.suggestion, input);
@@ -616,10 +760,11 @@ async function runCommand(paneId, input) {
   if (paneId === 1) await refreshFiles();
   await updateGitBranch(paneId);
 }
+
 // ── Suggestion ────────────────────────────────────────────────
 function addSuggestion(paneId, suggestion, originalInput) {
   const output = document.getElementById(`output${paneId}`);
-  const div = document.createElement('div');
+  const div    = document.createElement('div');
   div.className = 'out-suggestion';
   div.innerHTML = `
     💡 <span style="color:var(--text-mute)">Vouliez-vous dire</span>
@@ -664,7 +809,11 @@ function setupPane(paneId) {
     }
     if (e.ctrlKey && e.key === 'a') { e.preventDefault(); input.select(); return; }
     if (e.ctrlKey && e.key === 't') { e.preventDefault(); createTab(); return; }
-    if (e.ctrlKey && e.key === 'w') { e.preventDefault(); if (activeTab) closeTab(new Event('click'), activeTab.id); return; }
+    if (e.ctrlKey && e.key === 'w') {
+      e.preventDefault();
+      if (activeTab) closeTab(new Event('click'), activeTab.id);
+      return;
+    }
 
     const ghost = paneState[paneId].ghostSuggestion;
     if ((e.key === 'ArrowRight' || e.key === 'Tab') && ghost && input.selectionStart === input.value.length) {
@@ -681,12 +830,23 @@ function setupPane(paneId) {
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       const state = paneState[paneId];
-      if (state.historyIndex > 0) { state.historyIndex--; input.value = history[state.historyIndex]; await updateGhost(paneId, input.value); }
+      if (state.historyIndex > 0) {
+        state.historyIndex--;
+        input.value = history[state.historyIndex];
+        await updateGhost(paneId, input.value);
+      }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       const state = paneState[paneId];
-      if (state.historyIndex < history.length - 1) { state.historyIndex++; input.value = history[state.historyIndex]; await updateGhost(paneId, input.value); }
-      else { state.historyIndex = history.length; input.value = ''; await updateGhost(paneId, ''); }
+      if (state.historyIndex < history.length - 1) {
+        state.historyIndex++;
+        input.value = history[state.historyIndex];
+        await updateGhost(paneId, input.value);
+      } else {
+        state.historyIndex = history.length;
+        input.value = '';
+        await updateGhost(paneId, '');
+      }
     }
   });
 
@@ -695,12 +855,12 @@ function setupPane(paneId) {
 
 // ── Bienvenue ─────────────────────────────────────────────────
 async function showWelcome() {
-  addLine(1, 'Leyo Shell  1.8', 'out-welcome');
-  addLine(1, 'Ctrl+K thèmes  ·  Ctrl+D split  ·  Ctrl+F recherche  ·  Tab complétion', 'out-muted');
+  addLine(1, 'Leyo Shell  1.9', 'out-welcome');
+  addLine(1, 'Ctrl+K thèmes  ·  Ctrl+D split  ·  Ctrl+F recherche  ·  nano fichier', 'out-muted');
   addLine(1, '', 'out-normal');
 
   const path = await window.go.main.App.GetCurrentPath();
-  document.getElementById('segPath1').textContent = path;
+  document.getElementById('segPath1').textContent    = path;
   document.getElementById('sidebarPath').textContent = path;
   await refreshFiles();
   await updateGitBranch(1);
@@ -718,209 +878,5 @@ document.addEventListener('click', (e) => {
   if (p1.contains(e.target)) setActivePane(1);
   else if (p2.contains(e.target)) setActivePane(2);
 });
-// ── Système PTY ───────────────────────────────────────────────
-const ptyInstances = { 1: null, 2: null };
 
-function getPTYMeta(command) {
-  const lower = command.toLowerCase().split(' ')[0];
-  const map = {
-    'python':     { icon: '🐍', label: 'Python',     },
-    'python3':    { icon: '🐍', label: 'Python',     },
-    'py':         { icon: '🐍', label: 'Python',     },
-    'node':       { icon: '⬡',  label: 'Node.js',   },
-    'ssh':        { icon: '🔒', label: 'SSH',        },
-    'powershell': { icon: '⚡', label: 'PowerShell', },
-    'pwsh':       { icon: '⚡', label: 'PowerShell', },
-    'mysql':      { icon: '🐬', label: 'MySQL',      },
-    'psql':       { icon: '🐘', label: 'PostgreSQL', },
-    'ipython':    { icon: '🔬', label: 'IPython',    },
-    'wsl':        { icon: '🐧', label: 'WSL',        },
-    'bash':       { icon: '$',  label: 'Bash',       },
-  };
-  return map[lower] || { icon: '❯', label: command };
-}
-
-async function openPTY(paneId, command) {
-  const sessionId = `pty-${paneId}-${Date.now()}`;
-  const meta = getPTYMeta(command);
-
-  window.runtime.EventsOn(`pty:fallback:${sessionId}`, () => {
-    window.runtime.EventsOff(`pty:fallback:${sessionId}`);
-    document.getElementById(`output${paneId}`).style.display = '';
-    document.getElementById(`ptyContainer${paneId}`).style.display = 'none';
-    addLine(paneId, `${meta.icon}  ${meta.label} ouvert dans une fenêtre externe`, 'out-muted');
-    addLine(paneId, '(PTY intégré prévu pour Leyo 2.0)', 'out-muted');
-    updateStatus(paneId, true);
-    document.getElementById(`commandInput${paneId}`).focus();
-  });
-
-  document.getElementById(`output${paneId}`).style.display = 'none';
-  const container = document.getElementById(`ptyContainer${paneId}`);
-  container.style.display = 'flex';
-  document.getElementById(`ptyTitle${paneId}`).textContent = `${meta.icon}  ${meta.label}`;
-
-  await window.go.main.App.StartPTYSession(sessionId, command, 80, 24);
-}
-
-async function closePTY(paneId) {
-  const instance = ptyInstances[paneId];
-  if (instance) {
-    await window.go.main.App.StopPTYSession(instance.sessionId);
-    ptyInstances[paneId] = null;
-  }
-  document.getElementById(`output${paneId}`).style.display = '';
-  document.getElementById(`ptyContainer${paneId}`).style.display = 'none';
-  document.getElementById(`commandInput${paneId}`).focus();
-}
 init().then(() => showWelcome());
-
-// ── Éditeur Nano ──────────────────────────────────────────────
-const editor = {
-  filename: '',
-  original: '',
-  modified: false,
-  paneId: 1,
-};
-
-async function openEditor(paneId, filename) {
-  editor.paneId  = paneId;
-  editor.filename = filename.trim();
-
-  const result = await window.go.main.App.ReadFile(editor.filename);
-
-  document.getElementById('editorFilename').textContent = editor.filename;
-  document.getElementById('editorStatus').textContent   =
-    result.exists === 'true' ? `📄 ${result.path}` : '✦ nouveau fichier';
-
-  const textarea = document.getElementById('editorTextarea');
-  textarea.value = result.content;
-  editor.original = result.content;
-  editor.modified = false;
-
-  updateEditorFooter();
-  updateGutter();
-
-  document.getElementById('editorModal').style.display = 'flex';
-  document.getElementById('editorModified').textContent = '';
-  textarea.focus();
-
-  // Place le curseur au début
-  textarea.setSelectionRange(0, 0);
-}
-
-async function saveEditor() {
-  const textarea = document.getElementById('editorTextarea');
-  const content  = textarea.value;
-
-  const err = await window.go.main.App.WriteFile(editor.filename, content);
-  if (err) {
-    document.getElementById('editorStatus').textContent = `❌ ${err}`;
-    return;
-  }
-
-  editor.original = content;
-  editor.modified = false;
-  document.getElementById('editorModified').textContent = '';
-  document.getElementById('editorStatus').textContent = '✅ Sauvegardé';
-  setTimeout(() => {
-    document.getElementById('editorStatus').textContent =
-      `📄 ${editor.filename}`;
-  }, 2000);
-
-  // Rafraîchit la sidebar si fichier créé
-  await refreshFiles();
-}
-
-function closeEditor() {
-  if (editor.modified) {
-    const confirm = window.confirm(
-      `Le fichier "${editor.filename}" a été modifié.\nQuitter sans sauvegarder ?`
-    );
-    if (!confirm) return;
-  }
-  document.getElementById('editorModal').style.display = 'none';
-  document.getElementById(`commandInput${editor.paneId}`).focus();
-}
-
-function updateGutter() {
-  const textarea = document.getElementById('editorTextarea');
-  const gutter   = document.getElementById('editorGutter');
-  const lines    = textarea.value.split('\n').length;
-
-  gutter.innerHTML = '';
-  for (let i = 1; i <= Math.max(lines, 1); i++) {
-    const div = document.createElement('div');
-    div.className = 'gutter-line';
-    div.textContent = i;
-    gutter.appendChild(div);
-  }
-
-  document.getElementById('editorLineCount').textContent = `${lines} ligne${lines > 1 ? 's' : ''}`;
-}
-
-function updateEditorFooter() {
-  const textarea = document.getElementById('editorTextarea');
-  const text     = textarea.value;
-  const pos      = textarea.selectionStart;
-
-  const before = text.substring(0, pos);
-  const line   = before.split('\n').length;
-  const col    = before.split('\n').pop().length + 1;
-
-  document.getElementById('editorCursorPos').textContent = `Ligne ${line}, Col ${col}`;
-
-  // Met en valeur le numéro de ligne actif
-  document.querySelectorAll('.gutter-line').forEach((el, i) => {
-    el.classList.toggle('active', i + 1 === line);
-  });
-}
-
-// Listeners éditeur
-document.getElementById('editorSaveBtn').addEventListener('click', saveEditor);
-document.getElementById('editorCloseBtn').addEventListener('click', closeEditor);
-
-document.getElementById('editorTextarea').addEventListener('input', () => {
-  editor.modified = true;
-  document.getElementById('editorModified').textContent = '● Modifié';
-  updateGutter();
-  updateEditorFooter();
-});
-
-document.getElementById('editorTextarea').addEventListener('keydown', async (e) => {
-  // Ctrl+S → sauvegarde
-  if (e.ctrlKey && e.key === 's') {
-    e.preventDefault();
-    await saveEditor();
-    return;
-  }
-
-  // Ctrl+Q → quitte
-  if (e.ctrlKey && e.key === 'q') {
-    e.preventDefault();
-    closeEditor();
-    return;
-  }
-
-  // Tab → insère 2 espaces (pas de changement de focus)
-  if (e.key === 'Tab') {
-    e.preventDefault();
-    const ta    = e.target;
-    const start = ta.selectionStart;
-    const end   = ta.selectionEnd;
-    ta.value    = ta.value.slice(0, start) + '  ' + ta.value.slice(end);
-    ta.selectionStart = ta.selectionEnd = start + 2;
-    updateGutter();
-    return;
-  }
-
-  // Échap → propose de quitter
-  if (e.key === 'Escape') {
-    closeEditor();
-    return;
-  }
-
-  setTimeout(updateEditorFooter, 0);
-});
-
-document.getElementById('editorTextarea').addEventListener('click', updateEditorFooter);
-document.getElementById('editorTextarea').addEventListener('keyup', updateEditorFooter);

@@ -704,3 +704,26 @@ kbd {
 }
 
 .xterm-viewport { background: transparent !important; }
+
+/* ── CODEMIRROR CONTAINER ─────────────────────── */
+.cm-editor-container {
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* Override : CodeMirror prend toute la hauteur */
+.cm-editor {
+  height: 100% !important;
+  outline: none !important;
+}
+
+.cm-scroller {
+  font-family: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace !important;
+  font-size: 13px !important;
+  line-height: 1.7 !important;
+}
+
+/* Supprime les anciens styles textarea et gutter devenus inutiles */
+.editor-gutter  { display: none; }
+.editor-textarea{ display: none; }
