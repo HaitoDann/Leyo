@@ -207,12 +207,14 @@ document.getElementById('splitBtn').addEventListener('click', toggleSplit);
 
 // ── Éditeur CodeMirror ────────────────────────────────────────
 async function openEditor(paneId, filename) {
-  if (!window.LeyoEditor) {
-    addLine(paneId, '⏳ Éditeur en cours de chargement...', 'out-muted');
-    await new Promise(r => setTimeout(r, 600));
+  // Attend jusqu'à 3 secondes que le module soit chargé
+  let attempts = 0;
+  while (!window.LeyoEditor && attempts < 15) {
+    await new Promise(r => setTimeout(r, 200));
+    attempts++;
   }
   if (!window.LeyoEditor) {
-    addLine(paneId, '❌ Éditeur indisponible', 'out-error');
+    addLine(paneId, '❌ Éditeur indisponible — vérifiez votre connexion internet (CodeMirror CDN)', 'out-error');
     return;
   }
   await window.LeyoEditor.open(paneId, filename);
