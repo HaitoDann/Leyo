@@ -1,7 +1,6 @@
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  /* Couleurs dynamiques — modifiées par les thèmes */
   --cyan:      #5BC8E8;
   --blue:      #5577DD;
   --violet:    #8855EE;
@@ -10,8 +9,6 @@
   --bg2:       #0A0A14;
   --bg3:       #0D0D20;
   --text:      #D8D8E8;
-
-  /* Couleurs fixes */
   --rose:      #EE4488;
   --seg-user:  #1A1A35;
   --seg-path:  #12122A;
@@ -23,7 +20,7 @@
   --success:   #44CC88;
   --error:     #EE4455;
   --warning:   #DDAA33;
-  --border:    rgba(255, 255, 255, 0.05);
+  --border:    rgba(255,255,255,0.05);
 }
 
 body {
@@ -121,7 +118,6 @@ body {
   background: var(--bg2);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 12px;
-  padding: 0;
   width: 480px;
   overflow: hidden;
   box-shadow: 0 40px 80px rgba(0,0,0,0.6);
@@ -179,10 +175,7 @@ body {
   background: rgba(0,0,0,0.4);
 }
 
-.theme-swatch {
-  flex: 1;
-  border-radius: 3px;
-}
+.theme-swatch { flex: 1; border-radius: 3px; }
 
 .theme-card-name {
   text-align: center;
@@ -237,7 +230,6 @@ body {
   flex-shrink: 0;
 }
 
-/* ── HANDLE RESIZE ────────────────────────────── */
 .sidebar-resize-handle {
   width: 4px;
   background: transparent;
@@ -251,8 +243,7 @@ body {
 .sidebar-resize-handle::after {
   content: '';
   position: absolute;
-  top: 0; bottom: 0;
-  left: 1px;
+  top: 0; bottom: 0; left: 1px;
   width: 1px;
   background: rgba(255,255,255,0.05);
   transition: background 0.15s;
@@ -287,15 +278,15 @@ body {
 .file-item .fname { overflow: hidden; text-overflow: ellipsis; }
 .file-item:hover .fname.type-dir { color: var(--cyan); }
 
-.type-dir { color: var(--cyan); }
-.type-go  { color: #5BC8CC; }
-.type-exe { color: var(--success); }
-.type-md  { color: #AABB44; }
-.type-yml { color: var(--warning); }
-.type-json{ color: #DD8833; }
-.type-git { color: var(--magenta); opacity: 0.8; }
-.type-sys { color: var(--text-mute); }
-.type-other{ color: var(--text-mute); }
+.type-dir   { color: var(--cyan); }
+.type-go    { color: #5BC8CC; }
+.type-exe   { color: var(--success); }
+.type-md    { color: #AABB44; }
+.type-yml   { color: var(--warning); }
+.type-json  { color: #DD8833; }
+.type-git   { color: var(--magenta); opacity: 0.8; }
+.type-sys   { color: var(--text-mute); }
+.type-other { color: var(--text-mute); }
 
 /* ── PREVIEW ──────────────────────────────────── */
 .preview-panel {
@@ -467,7 +458,31 @@ body {
 .file-item[draggable="true"]:active { cursor: grabbing; }
 .prompt-bar.drop-active { background: rgba(91,200,232,0.04); border-top-color: rgba(91,200,232,0.2); }
 
-/* ── ÉDITEUR ──────────────────────────────────── */
+/* ── PTY TERMINAL ─────────────────────────────── */
+.pty-container {
+  flex: 1; display: flex; flex-direction: column;
+  overflow: hidden; border: 1px solid var(--border);
+  border-radius: 6px; margin-bottom: 8px; background: #0A0A0A;
+}
+
+.pty-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 14px; background: rgba(136,85,238,0.08);
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+
+.pty-title { font-size: 11px; color: var(--cyan); font-weight: 600; letter-spacing: 0.5px; }
+
+.pty-close {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-mute); font-size: 10px; padding: 2px 8px;
+  border-radius: 3px; cursor: pointer; font-family: inherit; transition: all 0.1s;
+}
+
+.pty-close:hover { border-color: var(--error); color: var(--error); }
+.pty-term { flex: 1; padding: 8px; overflow: hidden; }
+
+/* ── ÉDITEUR MODAL ────────────────────────────── */
 .editor-modal {
   position: fixed;
   inset: 0;
@@ -483,72 +498,61 @@ body {
   width: 82vw;
   height: 82vh;
   max-width: 1100px;
-  background: #0B0B13;
-  border: 1px solid rgba(136,85,238,0.2);
+  background: #1E1E2E;
+  border: 1px solid rgba(125,207,255,0.12);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   box-shadow:
-    0 48px 96px rgba(0,0,0,0.8),
-    0 0 0 1px rgba(136,85,238,0.08);
+    0 48px 96px rgba(0,0,0,0.7),
+    0 0 0 1px rgba(125,207,255,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
-/* ── Header épuré ────────────────────────────────────────── */
+/* ── Header épuré 3 colonnes ─────────────────── */
 .editor-header {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   padding: 0 16px;
   height: 42px;
-  background: rgba(0,0,0,0.3);
+  background: #181825;
   border-bottom: 1px solid rgba(255,255,255,0.05);
   flex-shrink: 0;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.3);
 }
 
-/* Colonne gauche — statut + point modifié */
 .editor-title-area {
   display: flex;
   align-items: center;
   gap: 8px;
-  justify-content: flex-start;
 }
 
 .editor-icon {
   font-size: 13px;
-  color: var(--violet);
+  color: #BB9AF7;
   opacity: 0.7;
 }
 
-/* Point ● modifié — discret, orange */
-#editorModified {
-  font-size: 14px;
-  color: #E5C07B;
-  line-height: 1;
-  transition: opacity 0.2s;
-}
-
-/* Statut — chemin ou message */
 .editor-status {
   font-size: 10px;
-  color: var(--text-mute);
+  color: #565F89;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 300px;
+  max-width: 280px;
   letter-spacing: 0.2px;
 }
 
-/* Colonne centrale — nom du fichier centré */
 .editor-filename {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text);
+  color: #C0CAF5;
   text-align: center;
   letter-spacing: 0.3px;
 }
 
-/* Colonne droite — raccourcis + fermer */
 .editor-actions {
   display: flex;
   align-items: center;
@@ -561,8 +565,7 @@ body {
   align-items: center;
   gap: 5px;
   font-size: 10px;
-  color: var(--text-mute);
-  opacity: 0.7;
+  color: #565F89;
 }
 
 kbd {
@@ -572,15 +575,14 @@ kbd {
   padding: 1px 5px;
   font-family: inherit;
   font-size: 9px;
-  color: var(--text-dim);
+  color: #A9B1D6;
   letter-spacing: 0.5px;
 }
 
-/* Bouton fermer — SVG minimaliste */
 .editor-close-btn {
   background: transparent;
   border: none;
-  color: var(--text-mute);
+  color: #565F89;
   width: 26px;
   height: 26px;
   border-radius: 5px;
@@ -592,69 +594,62 @@ kbd {
   font-size: 13px;
 }
 
-.editor-close-btn:hover {
-  background: rgba(238,68,85,0.12);
-  color: #EE4455;
-}
-
-/* Bouton sauvegarder — supprimé visuellement, remplacé par raccourci */
+.editor-close-btn:hover { background: rgba(247,118,142,0.12); color: #F7768E; }
 .editor-save-btn { display: none; }
 
-/* ── Corps ───────────────────────────────────────────────── */
+/* ── Corps éditeur ───────────────────────────── */
 .editor-body {
   flex: 1;
   display: flex;
   overflow: hidden;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);
 }
 
-/* Anciens éléments masqués — remplacés par CodeMirror */
 .editor-gutter   { display: none; }
 .editor-textarea { display: none; }
 
-/* ── Footer — barre d'état pro ───────────────────────────── */
+/* ── Footer barre d'état pro ─────────────────── */
 .editor-footer {
   display: flex;
   align-items: center;
   height: 26px;
-  padding: 0;
-  background: rgba(0,0,0,0.35);
+  background: #181825;
   border-top: 1px solid rgba(255,255,255,0.04);
   font-size: 11px;
-  color: var(--text-mute);
+  color: #565F89;
   flex-shrink: 0;
   letter-spacing: 0.2px;
   user-select: none;
   overflow: hidden;
+  box-shadow: 0 -1px 6px rgba(0,0,0,0.25);
 }
 
-/* Chaque section du footer */
 .editor-footer-section {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 0 14px;
   height: 100%;
-  border-right: 1px solid rgba(255,255,255,0.05);
+  border-right: 1px solid rgba(255,255,255,0.04);
   white-space: nowrap;
+  transition: color 0.15s;
 }
 
+.editor-footer-section:hover  { color: #A9B1D6; }
 .editor-footer-section:last-child { border-right: none; }
+.editor-footer-section svg    { opacity: 0.4; flex-shrink: 0; }
 
-.editor-footer-section svg {
-  opacity: 0.5;
-  flex-shrink: 0;
+#editorCursorPos { color: #A9B1D6; }
+#editorLang      { color: #7DCFFF; opacity: 0.85; }
+#editorEncoding  { opacity: 0.5; }
+
+#editorModified {
+  font-size: 14px;
+  color: #FF9E64;
+  line-height: 1;
 }
 
-/* Position curseur — mise en valeur légère */
-#editorCursorPos { color: var(--text-dim); }
-
-/* Langage — couleur accent */
-#editorLang { color: var(--cyan); opacity: 0.8; }
-
-/* Encodage */
-#editorEncoding { opacity: 0.6; }
-
-/* ── CodeMirror container ─────────────────────────────────── */
+/* ── CodeMirror container ────────────────────── */
 .cm-editor-container {
   flex: 1;
   overflow: hidden;
@@ -672,81 +667,3 @@ kbd {
   line-height: 1.75 !important;
   font-variant-ligatures: common-ligatures !important;
 }
-/* ── PTY TERMINAL ─────────────────────────────── */
-.pty-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  margin-bottom: 8px;
-  background: #0A0A0A;
-}
-
-.pty-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 14px;
-  background: rgba(136,85,238,0.08);
-  border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.pty-title {
-  font-size: 11px;
-  color: var(--cyan);
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-.pty-close {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-mute);
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 3px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.1s;
-}
-
-.pty-close:hover { border-color: var(--error); color: var(--error); }
-
-.pty-term {
-  flex: 1;
-  padding: 8px;
-  overflow: hidden;
-}
-
-.xterm {
-  height: 100%;
-  font-family: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace !important;
-}
-
-.xterm-viewport { background: transparent !important; }
-
-/* ── CODEMIRROR CONTAINER ─────────────────────── */
-.cm-editor-container {
-  flex: 1;
-  overflow: hidden;
-  height: 100%;
-}
-
-/* Override : CodeMirror prend toute la hauteur */
-.cm-editor {
-  height: 100% !important;
-  outline: none !important;
-}
-
-.cm-scroller {
-  font-family: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace !important;
-  font-size: 13px !important;
-  line-height: 1.7 !important;
-}
-
-/* Supprime les anciens styles textarea et gutter devenus inutiles */
-.editor-gutter  { display: none; }
-.editor-textarea{ display: none; }

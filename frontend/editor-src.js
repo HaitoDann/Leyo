@@ -33,127 +33,145 @@ function getLanguage(filename) {
   return map[ext] || null;
 }
 
-// ── Nom lisible du langage pour la barre d'état ───────────────
+// ── Nom lisible du langage ────────────────────────────────────
 function getLanguageName(filename) {
   const ext = (filename.split('.').pop() || '').toLowerCase();
   const map = {
     'js': 'JavaScript', 'ts': 'TypeScript',
     'jsx': 'JSX', 'tsx': 'TSX',
     'py': 'Python', 'pyw': 'Python',
-    'json': 'JSON', 'md': 'Markdown', 'mdx': 'Markdown',
+    'json': 'JSON',
+    'md': 'Markdown', 'mdx': 'Markdown',
     'html': 'HTML', 'htm': 'HTML',
     'css': 'CSS', 'scss': 'SCSS',
     'go': 'Go',
     'txt': 'Texte brut',
   };
-  return map[ext] || ext.toUpperCase() || 'Texte brut';
+  return map[ext] || (ext ? ext.toUpperCase() : 'Texte brut');
 }
 
-// ── Thème CodeMirror — palette douce type One Dark ────────────
+// ── Thème Tokyo Night ─────────────────────────────────────────
 function buildTheme() {
   const s       = getComputedStyle(document.documentElement);
-  const cyan    = s.getPropertyValue('--cyan').trim()     || '#5BC8E8';
   const violet  = s.getPropertyValue('--violet').trim()   || '#8855EE';
   const magenta = s.getPropertyValue('--magenta').trim()  || '#CC44AA';
-  const bg      = s.getPropertyValue('--bg').trim()       || '#08080E';
-  const text    = s.getPropertyValue('--text').trim()     || '#D8D8E8';
-  const mute    = s.getPropertyValue('--text-mute').trim()|| '#606080';
 
-  // Couleurs de syntaxe pastel — One Dark inspiré
+  // Palette Tokyo Night — températures équilibrées
   const syn = {
-    keyword:   '#C678DD',  // violet doux
-    fn:        '#61AFEF',  // bleu clair
-    string:    '#98C379',  // vert sauge
-    number:    '#D19A66',  // orange paille
-    comment:   '#5C6370',  // gris
-    operator:  '#56B6C2',  // cyan doux
-    tag:       '#E06C75',  // rouge rosé
-    attr:      '#D19A66',  // orange
-    property:  '#E5C07B',  // jaune paille
-    type:      '#E5C07B',  // jaune paille
-    builtin:   '#E5C07B',
-    punctuation:'#ABB2BF', // gris clair
-    variable:  '#ABB2BF',
-    def:       '#61AFEF',
-    link:      '#61AFEF',
+    keyword:     '#BB9AF7',  // violet pastel — if, def, return
+    fn:          '#7DCFFF',  // cyan clair — fonctions
+    string:      '#9ECE6A',  // vert émeraude doux — strings
+    number:      '#FF9E64',  // orange pastel — nombres
+    comment:     '#565F89',  // gris-bleu discret — commentaires
+    operator:    '#89DDFF',  // cyan pâle — opérateurs
+    tag:         '#F7768E',  // rose — balises HTML
+    attr:        '#FF9E64',  // orange — attributs
+    property:    '#73DACA',  // turquoise — propriétés objet
+    type:        '#2AC3DE',  // bleu-cyan — types
+    builtin:     '#FF9E64',  // orange — builtins
+    punctuation: '#C0CAF5',  // lavande claire — ponctuation
+    variable:    '#C0CAF5',  // lavande claire — variables
+    def:         '#7DCFFF',  // cyan — définitions
+    link:        '#7DCFFF',
   };
 
-  // Fond légèrement différent du fond principal pour la gouttière
-  const bgGutter   = 'rgba(0,0,0,0.25)';
-  const bgActive   = 'rgba(255,255,255,0.04)';
-  const borderCol  = 'rgba(255,255,255,0.05)';
+  // Fonds VS Code sombre — gris-bleu, jamais noir pur
+  const bgEditor = '#1E1E2E';  // fond éditeur
+  const bgGutter = '#181825';  // gouttière légèrement plus sombre
+  const bgActive = '#2A2A3D';  // ligne active
+  const textMain = '#C0CAF5';  // texte principal — lavande claire
 
   return EditorView.theme({
+
     // ── Conteneur ────────────────────────────────────────────
     '&': {
       height: '100%',
-      backgroundColor: bg,
-      color: text,
+      backgroundColor: bgEditor,
+      color: textMain,
       fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace",
       fontSize: '13px',
       fontVariantLigatures: 'common-ligatures',
     },
+
     '.cm-content': {
       padding: '14px 0',
-      caretColor: magenta,
-      lineHeight: '1.75',   // ← respiration
+      caretColor: '#7DCFFF',
+      lineHeight: '1.75',
     },
 
     // ── Curseur ───────────────────────────────────────────────
     '.cm-cursor': {
-      borderLeftColor: magenta,
+      borderLeftColor: '#7DCFFF',
       borderLeftWidth: '2px',
     },
 
     // ── Sélection ─────────────────────────────────────────────
     '.cm-selectionBackground': {
-      backgroundColor: `${violet}33 !important`,
+      backgroundColor: 'rgba(187,154,247,0.2) !important',
     },
     '.cm-focused .cm-selectionBackground': {
-      backgroundColor: `${violet}44 !important`,
+      backgroundColor: 'rgba(187,154,247,0.25) !important',
     },
     '::selection': {
-      backgroundColor: `${violet}44`,
+      backgroundColor: 'rgba(187,154,247,0.2)',
     },
 
-    // ── Gouttière numéros de lignes ───────────────────────────
+    // ── Gouttière — effet de profondeur ───────────────────────
     '.cm-gutters': {
       backgroundColor: bgGutter,
-      borderRight: `1px solid ${borderCol}`,
-      color: mute,
-      minWidth: '48px',
+      borderRight: '1px solid rgba(255,255,255,0.05)',
+      boxShadow: '2px 0 8px rgba(0,0,0,0.35)',
+      color: '#3B4261',
+      minWidth: '52px',
     },
     '.cm-lineNumbers .cm-gutterElement': {
-      color: '#3D4350',      // gris très discret
+      color: '#3B4261',
       fontSize: '11.5px',
-      paddingRight: '14px',
-      paddingLeft: '6px',
+      paddingRight: '16px',
+      paddingLeft: '8px',
       lineHeight: '1.75',
-    },
-    // Numéro de ligne active — mis en valeur
-    '.cm-activeLineGutter': {
-      color: cyan,
-      fontWeight: '600',
-      backgroundColor: bgActive,
+      opacity: '0.6',
     },
 
-    // ── Ligne active — highlight subtil ──────────────────────
+    // Numéro ligne active — pleine opacité + accent
+    '.cm-activeLineGutter': {
+      color: '#7DCFFF',
+      fontWeight: '600',
+      backgroundColor: bgActive,
+      opacity: '1',
+    },
+
+    // ── Ligne active ──────────────────────────────────────────
     '.cm-activeLine': {
       backgroundColor: bgActive,
+      boxShadow: 'inset 2px 0 0 rgba(125,207,255,0.35)',
     },
 
     // ── Brackets ──────────────────────────────────────────────
     '.cm-matchingBracket': {
-      backgroundColor: `${violet}28`,
-      outline: `1px solid ${violet}66`,
+      backgroundColor: 'rgba(187,154,247,0.2)',
+      outline: '1px solid rgba(187,154,247,0.5)',
       borderRadius: '2px',
     },
 
-    // ── Scroller / panneau ───────────────────────────────────
+    // ── Divers ────────────────────────────────────────────────
     '.cm-scroller': { overflow: 'auto' },
-    '.cm-panels':   { backgroundColor: 'rgba(10,10,18,0.98)', color: text },
+    '.cm-panels':   { backgroundColor: '#16161E', color: textMain },
+    '.cm-tooltip':  {
+      backgroundColor: '#1A1A2E',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: '6px',
+      boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+    },
+    '.cm-searchMatch': {
+      backgroundColor: 'rgba(255,158,100,0.25)',
+      outline: '1px solid rgba(255,158,100,0.4)',
+    },
+    '.cm-searchMatch.cm-searchMatch-selected': {
+      backgroundColor: 'rgba(255,158,100,0.5)',
+    },
 
-    // ── Tokens de syntaxe — palette douce ────────────────────
+    // ── Tokens syntaxiques — Tokyo Night ─────────────────────
     '.cm-keyword':     { color: syn.keyword,     fontWeight: '500' },
     '.cm-operator':    { color: syn.operator },
     '.cm-variable':    { color: syn.variable },
@@ -175,13 +193,14 @@ function buildTheme() {
     '.cm-builtin':     { color: syn.builtin },
     '.cm-def':         { color: syn.def },
     '.cm-punctuation': { color: syn.punctuation },
-    '.cm-link':        { color: syn.link, textDecoration: 'underline' },
-    '.cm-header':      { color: cyan,            fontWeight: '700' },
-    '.cm-hr':          { color: mute },
-    '.cm-em':          { fontStyle: 'italic' },
-    '.cm-strong':      { fontWeight: '700' },
-    '.cm-code':        { color: syn.string,      fontFamily: 'inherit' },
-    '.cm-invalid':     { color: '#FF5555',       textDecoration: 'underline wavy' },
+    '.cm-link':        { color: syn.link,        textDecoration: 'underline' },
+    '.cm-header':      { color: syn.fn,          fontWeight: '700' },
+    '.cm-hr':          { color: syn.comment },
+    '.cm-em':          { fontStyle: 'italic',    color: syn.string },
+    '.cm-strong':      { fontWeight: '700',      color: syn.keyword },
+    '.cm-code':        { color: syn.property,    fontFamily: 'inherit' },
+    '.cm-invalid':     { color: '#F7768E',       textDecoration: 'underline wavy' },
+
   }, { dark: true });
 }
 
@@ -197,12 +216,8 @@ async function doSave() {
   if (!editorView) return;
   const content = editorView.state.doc.toString();
   const err     = await window.go.main.App.WriteFile(editorFilename, content);
-  if (err) {
-    setStatus(`❌ ${err}`);
-    return;
-  }
+  if (err) { setStatus(`❌ ${err}`); return; }
   editorOriginal = content;
-  editorModified = false;
   setModified(false);
   setStatus('✓ Sauvegardé');
   setTimeout(() => setStatus(''), 2000);
@@ -231,8 +246,8 @@ function setModified(mod) {
   editorModified = mod;
   const el = document.getElementById('editorModified');
   if (!el) return;
-  el.textContent  = mod ? '●' : '';
-  el.title        = mod ? 'Modifications non sauvegardées' : '';
+  el.textContent = mod ? '●' : '';
+  el.title       = mod ? 'Modifications non sauvegardées' : '';
 }
 
 function updateFooter() {
@@ -260,7 +275,7 @@ function mountEditor(content, filename) {
   const lang = getLanguage(filename);
 
   const customKeymap = keymap.of([
-    { key: 'Ctrl-s', run: () => { doSave(); return true; } },
+    { key: 'Ctrl-s', run: () => { doSave();  return true; } },
     { key: 'Ctrl-q', run: () => { doClose(); return true; } },
     indentWithTab,
     ...defaultKeymap,
@@ -292,7 +307,7 @@ function mountEditor(content, filename) {
   updateLanguageFooter(filename);
 }
 
-// ── API globale ───────────────────────────────────────────────
+// ── API globale exposée à main.js ─────────────────────────────
 window.LeyoEditor = {
 
   async open(paneId, filename) {
@@ -302,11 +317,9 @@ window.LeyoEditor = {
 
     const result = await window.go.main.App.ReadFile(editorFilename);
 
-    // Header — nom centré
     const elName = document.getElementById('editorFilename');
     if (elName) elName.textContent = editorFilename;
 
-    // Statut — chemin discret ou nouveau fichier
     setStatus(result.exists === 'true' ? result.path : '✦ Nouveau fichier');
     setModified(false);
 
