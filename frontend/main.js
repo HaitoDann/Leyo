@@ -228,8 +228,7 @@ function closeEditor() {
   window.LeyoEditor?.close();
 }
 
-document.getElementById('editorSaveBtn').addEventListener('click', saveEditor);
-document.getElementById('editorCloseBtn').addEventListener('click', closeEditor);
+document.getElementById('editorCloseBtn')?.addEventListener('click', closeEditor);
 
 // ── Système PTY ───────────────────────────────────────────────
 const ptyInstances = { 1: null, 2: null };
